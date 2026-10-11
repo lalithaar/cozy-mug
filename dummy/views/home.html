@@ -1,0 +1,12 @@
+{{define "title"}}Notes - Dummy{{end}}
+{{define "content"}}
+<h1>Notes</h1>
+<ul>
+{{range .Notes}}
+  <li>
+    <a href="{{$.URL "note" "id" .ID}}">{{.Title}}</a>
+    {{template "note-body" .}}
+  </li>
+{{end}}
+</ul>
+{{end}}

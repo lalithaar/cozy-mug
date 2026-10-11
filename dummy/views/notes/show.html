@@ -1,0 +1,8 @@
+{{define "title"}}{{.Note.Title}} - Dummy{{end}}
+{{define "content"}}
+<article>
+  <h1>{{.Note.Title}}</h1>
+  {{template "note-body" .Note}}
+  <p><a href="{{.URL "home"}}">Back</a></p>
+</article>
+{{end}}
