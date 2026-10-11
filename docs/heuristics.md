@@ -89,3 +89,10 @@ Operational rules. Every entry uses this shape:
 - Apply when: Any error page or diagnostic surface.
 - Deviate/ask: Never leak in prod.
 - Status: firm
+
+### Public surfaces introduce, they don't log
+- Opinion: README, release notes, and any user-facing copy describe what a user gets and who it's for — never ADR numbers, `docs/`/`LOG` pointers, or process/commit language.
+- Because: Those artifacts are written for the future maintainer, not the visitor; leaking them reads as changelog noise and buries the pitch. This regressed twice (release notes shipped ADR refs and a `docs/LOG.md` pointer).
+- Apply when: Writing any public artifact — README, release announcement, docs site, user-visible error text.
+- Deviate/ask: Never in user-facing copy; process detail stays in `AGENTS.md`/`docs/`.
+- Status: firm
