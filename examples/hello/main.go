@@ -1,59 +1,49 @@
 package main
 
 import (
+	"embed"
+	"io/fs"
 	"log"
 	"net/http"
 
 	"cozymug/core"
 	"cozymug/router"
+	"cozymug/views"
 )
 
+//go:embed views
+var viewFS embed.FS
+
+// homeView embeds core.Globals so the template can generate URLs; the framework
+// fills it in during c.Render.
+type homeView struct{ core.Globals }
+
+type userView struct {
+	core.Globals
+	ID string
+}
+
 func main() {
+	viewsFS, err := fs.Sub(viewFS, "views")
+	if err != nil {
+		log.Fatal(err)
+	}
+	set, err := views.New(viewsFS, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	r := router.New()
-	r.Use(logger)
+	r.Use(views.Middleware(set))
 
 	r.Get("/", func(c *core.Context) core.Response {
-		link, _ := c.URL("user", map[string]string{"id": "1"})
-		return core.String(http.StatusOK, `<h1>Home</h1><a href="`+link+`">User 1</a>`)
+		return c.Render(http.StatusOK, "home", &homeView{})
 	}).As("home")
 
 	r.Get("/users/{id}", func(c *core.Context) core.Response {
-		return core.String(http.StatusOK, "<h1>User "+c.Param("id")+"</h1>")
+		return c.Render(http.StatusOK, "users/show", &userView{ID: c.Param("id")})
 	}).As("user")
 
-	r.Post("/users", func(c *core.Context) core.Response {
-		name := c.Form("name")
-		if name == "" {
-			return core.Error(http.StatusBadRequest, "name required")
-		}
-		return core.Redirect(http.StatusSeeOther, "/")
-	})
-
-	admin := r.Group("/admin", requireAdmin)
-	admin.Get("/users", func(*core.Context) core.Response {
-		return core.String(http.StatusOK, "<h1>Admin users</h1>")
-	})
-
-	r.Static("/static/", "./static")
-	r.NotFound(func(*core.Context) core.Response {
-		return core.Error(http.StatusNotFound, "Page not found")
-	})
-
+	log.Println("listening on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
-}
-
-func logger(next core.Handler) core.Handler {
-	return func(c *core.Context) core.Response {
-		log.Printf("%s %s", c.Method(), c.Path())
-		return next(c)
-	}
-}
-
-func requireAdmin(next core.Handler) core.Handler {
-	return func(c *core.Context) core.Response {
-		if c.Query("admin") != "1" {
-			return core.Error(http.StatusForbidden, "Forbidden")
-		}
-		return next(c)
-	}
 }

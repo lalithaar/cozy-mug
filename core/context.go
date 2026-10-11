@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"net/http"
+	"reflect"
 )
 
 // Reverser builds a URL for a named route. The router implements it and
@@ -11,11 +12,43 @@ type Reverser interface {
 	Path(name string, params map[string]string) (string, error)
 }
 
+// Renderer executes a named view against data and returns the rendered bytes.
+// The views package implements it. Rendering happens *before* any write, so a
+// template error yields a complete error response, never a half-written page.
+type Renderer interface {
+	Render(name string, data any) ([]byte, error)
+}
+
+// Globals are request-scoped helpers available inside templates. Embed it in a
+// view struct and pass a *pointer* to Context.Render; the framework fills it.
+// URL returns an error, which html/template surfaces as a render error
+// (fail-loud) rather than a silently empty link.
+type Globals struct {
+	c *Context
+}
+
+// URL builds a named route's URL: href="{{.URL "user" "id" .User.ID}}". It is a
+// method so html/template can invoke it with arguments.
+func (g Globals) URL(name string, pairs ...string) (string, error) {
+	if g.c == nil {
+		return "", errors.New("core: Globals used outside a request")
+	}
+	if len(pairs)%2 != 0 {
+		return "", errors.New("core: URL expects name/value pairs")
+	}
+	params := make(map[string]string, len(pairs)/2)
+	for i := 0; i < len(pairs); i += 2 {
+		params[pairs[i]] = pairs[i+1]
+	}
+	return g.c.URL(name, params)
+}
+
 // Context is the per-request state handed to a handler.
 type Context struct {
 	W      http.ResponseWriter
 	R      *http.Request
 	Router Reverser
+	Views  Renderer
 }
 
 // URL builds the URL for a named route, e.g.
@@ -25,6 +58,43 @@ func (c *Context) URL(name string, params map[string]string) (string, error) {
 		return "", errors.New("core: no router attached to context")
 	}
 	return c.Router.Path(name, params)
+}
+
+// Globals returns this request's template helpers.
+func (c *Context) Globals() Globals { return Globals{c: c} }
+
+var globalsType = reflect.TypeOf(Globals{})
+
+// Render renders a named view and returns it as an HTML response. It fills an
+// embedded Globals field on data (if present) and buffers the whole page: a
+// render error becomes a 500 before any byte reaches the client.
+func (c *Context) Render(status int, name string, data any) Response {
+	if c.Views == nil {
+		return Error(http.StatusInternalServerError, "core: no view renderer configured")
+	}
+	injectGlobals(data, c.Globals())
+	b, err := c.Views.Render(name, data)
+	if err != nil {
+		return Error(http.StatusInternalServerError, err.Error())
+	}
+	return String(status, string(b))
+}
+
+// injectGlobals fills an embedded Globals field on a *struct so templates get
+// working helpers without per-handler boilerplate. Non-pointer or Globals-less
+// data is left untouched.
+func injectGlobals(data any, g Globals) {
+	v := reflect.ValueOf(data)
+	if v.Kind() != reflect.Pointer || v.IsNil() {
+		return
+	}
+	e := v.Elem()
+	if e.Kind() != reflect.Struct {
+		return
+	}
+	if f := e.FieldByName("Globals"); f.IsValid() && f.CanSet() && f.Type() == globalsType {
+		f.Set(reflect.ValueOf(g))
+	}
 }
 
 // Param returns a path parameter (e.g. {name}). It reads whatever the router
