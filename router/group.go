@@ -37,13 +37,13 @@ func (g *Group) Group(prefix string, mw ...core.Middleware) *Group {
 
 func (g *Group) Handle(method, pattern string, h core.Handler) *Route {
 	full := g.prefix + pattern
-	return g.router.register(method+" "+full, method, full, g.router.chain(h, g.middleware...))
+	return g.router.register(method+" "+exactRoot(full), method, full, g.router.chain(h, g.middleware...))
 }
 
 // Any registers h for every method under the group.
 func (g *Group) Any(pattern string, h core.Handler) *Route {
 	full := g.prefix + pattern
-	return g.router.register(full, "ANY", full, g.router.chain(h, g.middleware...))
+	return g.router.register(exactRoot(full), "ANY", full, g.router.chain(h, g.middleware...))
 }
 
 func (g *Group) Get(pattern string, h core.Handler) *Route {

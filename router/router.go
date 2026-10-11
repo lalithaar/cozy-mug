@@ -94,12 +94,23 @@ func (r *Route) Pattern() string { return r.pattern }
 
 // Handle registers h for one method and pattern, e.g. ("GET", "/users/{id}").
 func (rt *Router) Handle(method, pattern string, h core.Handler) *Route {
-	return rt.register(method+" "+pattern, method, pattern, rt.chain(h))
+	return rt.register(method+" "+exactRoot(pattern), method, pattern, rt.chain(h))
 }
 
 // Any registers h for every HTTP method (a method-less mux pattern).
 func (rt *Router) Any(pattern string, h core.Handler) *Route {
-	return rt.register(pattern, "ANY", pattern, rt.chain(h))
+	return rt.register(exactRoot(pattern), "ANY", pattern, rt.chain(h))
+}
+
+// exactRoot makes a bare "/" match only the root. ServeMux treats "GET /" as a
+// catch-all subtree, which would shadow Router.NotFound (a "/" registration) for
+// every GET path. A catch-all is expressed with NotFound (or an explicit
+// "subtree/" pattern), chi-style.
+func exactRoot(pattern string) string {
+	if pattern == "/" {
+		return "/{$}"
+	}
+	return pattern
 }
 
 func (rt *Router) Get(pattern string, h core.Handler) *Route {

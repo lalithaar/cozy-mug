@@ -91,6 +91,29 @@ func TestNotFoundFallback(t *testing.T) {
 	}
 }
 
+// A bare "/" route matches only the root, so it must not shadow NotFound.
+func TestRootRouteDoesNotShadowNotFound(t *testing.T) {
+	rt := router.New()
+	rt.Get("/", func(*core.Context) core.Response {
+		return core.String(http.StatusOK, "home")
+	})
+	rt.NotFound(func(*core.Context) core.Response {
+		return core.Error(http.StatusNotFound, "no such page")
+	})
+
+	root := httptest.NewRecorder()
+	rt.ServeHTTP(root, httptest.NewRequest(http.MethodGet, "/", nil))
+	if root.Code != http.StatusOK || root.Body.String() != "home" {
+		t.Fatalf("root: code=%d body=%q", root.Code, root.Body.String())
+	}
+
+	missing := httptest.NewRecorder()
+	rt.ServeHTTP(missing, httptest.NewRequest(http.MethodGet, "/missing", nil))
+	if missing.Code != http.StatusNotFound {
+		t.Fatalf("missing: code=%d, want 404", missing.Code)
+	}
+}
+
 func TestAnyMatchesAllMethods(t *testing.T) {
 	rt := router.New()
 	rt.Any("/ping", func(*core.Context) core.Response {
