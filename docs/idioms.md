@@ -34,3 +34,37 @@ func show(c *core.Context) core.Response {
   `r.Use(views.Middleware(set))`. (`0006`)
 - `.URL` is `{{.URL "user" "id" .User.ID}}` (name/value pairs); it errors rather
   than emitting an empty link. (`0006`)
+
+## Report an error (`0007`)
+Loaders return a structured error; the route maps it with `c.Error`. Wire
+`Logger` + `Errors` once, Logger outermost.
+
+```go
+func loadUser(c *core.Context) (User, error) {
+	u, err := db.UserByID(c.Param("id"))
+	if err != nil {
+		return User{}, core.NotFound(err)
+	}
+	return u, nil
+}
+
+func showUser(c *core.Context) core.Response {
+	u, err := loadUser(c)
+	if err != nil {
+		return c.Error(err) // 404, rendered by the Errors middleware
+	}
+	return c.Render(http.StatusOK, "users/show", &ShowView{User: u})
+}
+```
+
+```go
+opts := core.Options{Dev: isDev, Logger: slog.Default()}
+r.Use(core.Logger(opts), core.Errors(opts), views.Middleware(set))
+```
+
+- Use `panic`/`core.Must` **only** for boot; the `Errors` middleware recovers a
+  stray panic and renders 500. (`0007`)
+- Plain error (not an `HTTPError`) → 500. Return `core.NotFound`/`BadRequest`/…
+  or the `core.HTTPError` struct to set the status. (`0007`)
+- Add `views/errors/<status>.html` to brand error pages; `Errors` falls back to a
+  plain page. Dev shows status/stack/id; prod hides causes. (`0007`)

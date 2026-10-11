@@ -28,8 +28,8 @@ sessions except these files. Rules:
 
 ## Opinion ledger
 Firm opinions live in `docs/decisions/`. Project status:
-**early skeleton — handler contract, routing, templating decided; do not guess
-`open` items.**
+**early skeleton — handler contract, routing, templating, errors/logging
+decided; do not guess `open` items.**
 
 ### Firm
 - **Frugality is the top-level filter** — every addition (dep, line, export,
@@ -50,9 +50,13 @@ Firm opinions live in `docs/decisions/`. Project status:
 - **Templating is stdlib `html/template`** — `{{block}}` layouts + partials,
   buffered `c.Render`, parse-once; reverse URLs via an injected `.URL` method.
   See `docs/decisions/0006`.
+- **Errors are tiered + one boundary** — boot-only panic/`Must`; loaders return
+  `core.HTTPError`; `c.Error` makes a `Failure` Response (contract stays `0004`);
+  `core.Errors` recovers + renders dev page / prod `views/errors/<status>.html`.
+  `core.Logger` = slog line + request id. Tier-3 `{{render}}` boundary deferred.
+  See `docs/decisions/0007`.
 
 ### Open — do not guess, surface to the human
 Per-area gap map + stance: `docs/gap.md`. Items:
 - data / DB layer
-- error handling & logging contract
 - project layout / boilerplate contract

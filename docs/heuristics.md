@@ -82,3 +82,10 @@ Operational rules. Every entry uses this shape:
 - Apply when: Any redirect whose target derives from the request.
 - Deviate/ask: Never.
 - Status: firm
+
+### Fail loud in dev, quiet in prod
+- Opinion: Error detail goes to the developer in dev and to the logs in prod; prod responses never leak causes.
+- Because: A stack you can read in the browser is the fastest 11pm fix; a stack in a prod response is an information leak.
+- Apply when: Any error page or diagnostic surface.
+- Deviate/ask: Never leak in prod.
+- Status: firm
