@@ -94,6 +94,13 @@ func parse(t *template.Template, fsys fs.FS, patterns ...string) (*template.Temp
 // Layout returns the template name each view renders into.
 func (s *Set) Layout() string { return s.layout }
 
+// Has reports whether a view with the given name was parsed. The core Errors
+// middleware uses it to find an app error view (errors/<status>).
+func (s *Set) Has(name string) bool {
+	_, ok := s.views[name]
+	return ok
+}
+
 // Render executes view name into a buffer and returns the bytes. Nothing is
 // written on error; the caller turns the error into a complete response.
 func (s *Set) Render(name string, data any) ([]byte, error) {

@@ -12,6 +12,13 @@ type Response interface {
 	WriteTo(w http.ResponseWriter, r *http.Request)
 }
 
+// StatusCoder is implemented by responses that know their HTTP status, so the
+// Logger can record it without capturing the writer. A Response that does not
+// implement it is logged as 200.
+type StatusCoder interface {
+	StatusCode() int
+}
+
 // HTML is an HTML response. A zero Status means 200.
 type HTML struct {
 	Status  int
@@ -43,6 +50,13 @@ func (h HTML) WriteTo(w http.ResponseWriter, r *http.Request) {
 	io.WriteString(w, h.Body)
 }
 
+func (h HTML) StatusCode() int {
+	if h.Status == 0 {
+		return http.StatusOK
+	}
+	return h.Status
+}
+
 // Text is a text/plain response.
 func Text(status int, body string) Response { return text{status, body} }
 
@@ -57,6 +71,8 @@ func (t text) WriteTo(w http.ResponseWriter, _ *http.Request) {
 	io.WriteString(w, t.body)
 }
 
+func (t text) StatusCode() int { return t.status }
+
 // Redirect sends the client to url. Use http.StatusSeeOther after a POST and
 // http.StatusMovedPermanently for permanent moves.
 func Redirect(status int, url string) Response { return redirect{status, url} }
@@ -70,6 +86,8 @@ func (rd redirect) WriteTo(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, rd.url, rd.status)
 }
 
+func (rd redirect) StatusCode() int { return rd.status }
+
 // Error is a minimal HTML error response. The message is escaped; styling is
 // the UI layer's job (0003), so the default is intentionally plain.
 func Error(code int, msg string) Response {
@@ -82,6 +100,8 @@ func Status(code int) Response { return empty{code} }
 type empty struct{ code int }
 
 func (e empty) WriteTo(w http.ResponseWriter, _ *http.Request) { writeStatus(w, e.code) }
+
+func (e empty) StatusCode() int { return e.code }
 
 func copyHeaders(w http.ResponseWriter, h http.Header) {
 	for k, vs := range h {
