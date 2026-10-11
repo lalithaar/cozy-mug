@@ -75,3 +75,10 @@ Operational rules. Every entry uses this shape:
 - Apply when: Any place you'd add a config option or required choice.
 - Deviate/ask: If the *default* is wrong for most users, fix the default, don't add the knob.
 - Status: firm
+
+### Redirects are security surfaces
+- Opinion: Never build a `Location` from raw request input without `path.Clean`/rooting; reject protocol-relative targets.
+- Because: `//host` in `Location` is an open redirect. Our own canonical-slash did exactly this before the fix.
+- Apply when: Any redirect whose target derives from the request.
+- Deviate/ask: Never.
+- Status: firm

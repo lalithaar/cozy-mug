@@ -41,6 +41,12 @@ adding a matcher.
   subtree/mount patterns (ending in `/`) are exempt as directory-like. Opt out
   with `Router.DisableCanonicalSlash`.
 - `Router.Routes()` exposes method/pattern/name for introspection.
+- **Reverse URLs are reachable from handlers** via `c.URL(name, params)` —
+  `Context` carries a `Reverser` interface that the router injects as the
+  outermost middleware (templating reuses the same seam).
+- Canonical redirects run the target through `path.Clean`, so `Location` is
+  always a rooted path — never a protocol-relative (`//host`) **open redirect**.
+- **Duplicate route names panic** at registration (fail-fast, like ServeMux).
 
 ## Revisit if
 `ServeMux` semantics prove too limited, or group/middleware ordering must become

@@ -5,6 +5,7 @@ import (
 	"io/fs"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 
 	"cozymug/core"
@@ -40,6 +41,24 @@ func (rt *Router) Use(mw ...core.Middleware) {
 // DisableCanonicalSlash turns off the default trailing-slash redirect.
 func (rt *Router) DisableCanonicalSlash() { rt.canonicalSlash = false }
 
+// chain wraps h with the reverse-URL injector, then global middleware, then
+// any extra (group) middleware. The injector is always outermost so every
+// handler sees a Context with a working URL helper.
+func (rt *Router) chain(h core.Handler, extra ...core.Middleware) core.Handler {
+	mw := make([]core.Middleware, 0, 1+len(rt.middleware)+len(extra))
+	mw = append(mw, rt.inject)
+	mw = append(mw, rt.middleware...)
+	mw = append(mw, extra...)
+	return core.Chain(h, mw...)
+}
+
+func (rt *Router) inject(next core.Handler) core.Handler {
+	return func(c *core.Context) core.Response {
+		c.Router = rt
+		return next(c)
+	}
+}
+
 // Route is a registered route. Chain As to name it for reverse lookups.
 type Route struct {
 	router  *Router
@@ -55,8 +74,15 @@ type param struct {
 	wildcard bool
 }
 
-// As names the route so Path can generate its URL.
+// As names the route so Path can generate its URL. Duplicate names panic at
+// registration (fail-fast, like ServeMux's duplicate patterns).
 func (r *Route) As(name string) *Route {
+	if existing, ok := r.router.byName[name]; ok && existing != r {
+		panic("router: duplicate route name: " + name)
+	}
+	if r.name != "" && r.name != name {
+		delete(r.router.byName, r.name)
+	}
 	r.name = name
 	r.router.byName[name] = r
 	return r
@@ -68,12 +94,12 @@ func (r *Route) Pattern() string { return r.pattern }
 
 // Handle registers h for one method and pattern, e.g. ("GET", "/users/{id}").
 func (rt *Router) Handle(method, pattern string, h core.Handler) *Route {
-	return rt.register(method+" "+pattern, method, pattern, core.Chain(h, rt.middleware...))
+	return rt.register(method+" "+pattern, method, pattern, rt.chain(h))
 }
 
 // Any registers h for every HTTP method (a method-less mux pattern).
 func (rt *Router) Any(pattern string, h core.Handler) *Route {
-	return rt.register(pattern, "ANY", pattern, core.Chain(h, rt.middleware...))
+	return rt.register(pattern, "ANY", pattern, rt.chain(h))
 }
 
 func (rt *Router) Get(pattern string, h core.Handler) *Route {
@@ -100,7 +126,7 @@ func (rt *Router) Options(pattern string, h core.Handler) *Route {
 
 // NotFound sets the fallback handler for unmatched routes.
 func (rt *Router) NotFound(h core.Handler) {
-	rt.mux.Handle("/", core.Chain(h, rt.middleware...))
+	rt.mux.Handle("/", rt.chain(h))
 }
 
 func (rt *Router) register(muxPattern, method, pattern string, h core.Handler) *Route {
@@ -166,8 +192,10 @@ func (rt *Router) redirectCanonicalSlash(w http.ResponseWriter, r *http.Request)
 	if len(p) <= 1 || !strings.HasSuffix(p, "/") || rt.subtrees[p] {
 		return false
 	}
-	target := strings.TrimRight(p, "/")
-	if target == "" {
+	// path.Clean collapses "//", so the target can never be a protocol-relative
+	// ("//host") Location — the open-redirect guard.
+	target := path.Clean(strings.TrimRight(p, "/"))
+	if target == "." {
 		target = "/"
 	}
 	if r.URL.RawQuery != "" {

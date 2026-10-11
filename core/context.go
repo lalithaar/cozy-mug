@@ -1,11 +1,30 @@
 package core
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+)
+
+// Reverser builds a URL for a named route. The router implements it and
+// attaches itself to each Context so handlers can generate links.
+type Reverser interface {
+	Path(name string, params map[string]string) (string, error)
+}
 
 // Context is the per-request state handed to a handler.
 type Context struct {
-	W http.ResponseWriter
-	R *http.Request
+	W      http.ResponseWriter
+	R      *http.Request
+	Router Reverser
+}
+
+// URL builds the URL for a named route, e.g.
+// c.URL("user", map[string]string{"id": "1"}).
+func (c *Context) URL(name string, params map[string]string) (string, error) {
+	if c.Router == nil {
+		return "", errors.New("core: no router attached to context")
+	}
+	return c.Router.Path(name, params)
 }
 
 // Param returns a path parameter (e.g. {name}). It reads whatever the router
