@@ -8,6 +8,7 @@ not inline it here.
 - `docs/heuristics.md` — the operational rulebook (conditional rules).
 - `docs/idioms.md` — how *we* implement handlers, templates, errors, data, layout.
 - `docs/decisions/` — one ADR per load-bearing decision.
+- `docs/roadmap.md` — release criteria; the source of truth for what a tag promises.
 - `docs/gap.md` — stdlib-vs-Rails/Django gap map + per-area stance.
 - `docs/LOG.md` — append-only trail; read the last ~20 lines to catch recent drift.
 
@@ -55,6 +56,9 @@ decided; do not guess `open` items.**
   `core.Errors` recovers + renders dev page / prod `views/errors/<status>.html`.
   `core.Logger` = slog line + request id. Tier-3 `{{render}}` boundary deferred.
   See `docs/decisions/0007`.
+- **Versioning tracks decided-and-built readiness** — pre-1.0 numbers track the
+  decided 90%, not time; the v0.1 gate is "a stranger ships one small app with no
+  wall"; release criteria live in `docs/roadmap.md`. See `docs/decisions/0008`.
 
 ### Open — do not guess, surface to the human
 Per-area gap map + stance: `docs/gap.md`. Items:
