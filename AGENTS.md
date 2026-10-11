@@ -28,7 +28,8 @@ sessions except these files. Rules:
 
 ## Opinion ledger
 Firm opinions live in `docs/decisions/`. Project status:
-**early skeleton — handler contract + routing decided; do not guess `open` items.**
+**early skeleton — handler contract, routing, templating decided; do not guess
+`open` items.**
 
 ### Firm
 - **Frugality is the top-level filter** — every addition (dep, line, export,
@@ -46,10 +47,12 @@ Firm opinions live in `docs/decisions/`. Project status:
   `http.Handler`; raw `HandlerFunc` is the escape hatch. See `docs/decisions/0004`.
 - **Routing wraps `ServeMux`** — named routes + reverse URLs, groups,
   middleware, canonical-slash; params via `PathValue`. See `docs/decisions/0005`.
+- **Templating is stdlib `html/template`** — `{{block}}` layouts + partials,
+  buffered `c.Render`, parse-once; reverse URLs via an injected `.URL` method.
+  See `docs/decisions/0006`.
 
 ### Open — do not guess, surface to the human
 Per-area gap map + stance: `docs/gap.md`. Items:
-- templating & component model
 - data / DB layer
 - error handling & logging contract
 - project layout / boilerplate contract
