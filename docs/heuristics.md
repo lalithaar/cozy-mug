@@ -69,6 +69,13 @@ Operational rules. Every entry uses this shape:
 - Deviate/ask: Framework core never depends on the UI layer; any CSS build step/preprocessor = ADR.
 - Status: firm
 
+### Just enough styling to be functional
+- Opinion: The default UI provides the minimum to ship a usable, accessible page without touching CSS — and it is **not a dependency unless you opt in**. Import it or don't; it's never required.
+- Because: Styling must never be a blocker to shipping; defaults should carry you, and removing them should cost nothing. Spend exactly enough to clear the bar, no more.
+- Apply when: Building the default UI / component library (`ui`).
+- Deviate/ask: Any styling the core depends on, or that becomes mandatory, is a bug — flag it.
+- Status: firm
+
 ### Convention over configuration
 - Opinion: Prefer a good default the user can reject over a knob they must set.
 - Because: Decisions cost the user time; a default costs zero until rejected. Opt-out beats opt-in.
