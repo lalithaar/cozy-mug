@@ -55,15 +55,14 @@ myapp/
 | `views` | Block layouts and partials over `html/template` |
 | `app` | Assembles the pieces (logger, errors, views, routes) |
 | `ui` | Optional component library (opt-in) |
-| `examples/hello`, `dummy` | Runnable apps |
+| `examples/app` | Canonical example app (uses `app` glue + 0009 layout) |
 
 ## Try it
 
 From a clone of this repository:
 
 ```
-go run ./examples/hello   # http://localhost:8080
-go run ./dummy            # http://localhost:8080
+go run ./examples/app      # http://localhost:8080
 ```
 
 ## Non-goals

@@ -19,7 +19,7 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 
 ## v0.1.0 — first usable release
 
-- [ ] **Project layout / scaffolding** (`gap` 1) — decided (`0009`): conventional dirs, handlers/, views/, static/. TODO: canonical example app + getting-started.
+- [ ] **Project layout / scaffolding** (`gap` 1) — decided (`0009`): conventional dirs, handlers/, views/, static/. TODO: canonical example app at `examples/app` (built; polish + getting-started).
 - [x] **App glue** — `app` package (`0009`): `app.New(Config)` wires Logger -> Errors -> Views -> Router, mounts static, exposes an `http.Handler`.
 - [ ] **Data access** (`gap` 8, `open`) — decide the idiom (`database/sql` + thin helpers + raw-SQL hatch; no ORM) and document it.
 - [ ] **Global context / processors** (`gap` 7) — current user, flash, CSRF injected into every view.
