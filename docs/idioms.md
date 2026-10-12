@@ -120,7 +120,8 @@ func (s *Store) noteByID(ctx context.Context, id int64) (Note, error) {
 
 ## Sessions & CSRF (`0013`)
 Sessions live server-side by default (a framework-owned `sessions` table); wire the
-store in `app.Config` (it sits between Errors and Views) and read it in handlers.
+store in `app.Config` (`store.Middleware` loads it, then processors, views, and
+finally `store.CSRFMiddleware`) and read it in handlers.
 
 ```go
 sessions := core.Must(session.NewStore(db, session.Options{

@@ -25,16 +25,16 @@ func testStore(t *testing.T, opts Options) *Store {
 	return s
 }
 
-// do runs req through the session middleware and a no-op handler, returning the
-// response status and any cookies set.
+// do runs req through the session and CSRF middleware and a no-op handler,
+// returning the response status and any cookies set.
 func do(s *Store, req *http.Request, fn func(c *core.Context)) (int, []*http.Cookie) {
 	rec := httptest.NewRecorder()
-	h := s.Middleware(func(c *core.Context) core.Response {
+	h := s.Middleware(s.CSRFMiddleware(func(c *core.Context) core.Response {
 		if fn != nil {
 			fn(c)
 		}
 		return nil
-	})
+	}))
 	resp := h(&core.Context{W: rec, R: req})
 	code := http.StatusOK
 	if sc, ok := resp.(interface{ StatusCode() int }); ok {
@@ -184,6 +184,26 @@ func TestDisableCSRF(t *testing.T) {
 	s := testStore(t, Options{DisableCSRF: true})
 	if code, _ := do(s, httptest.NewRequest("POST", "/", nil), func(c *core.Context) {}); code != http.StatusOK {
 		t.Fatalf("CSRF disabled, POST should reach the handler, code %d", code)
+	}
+}
+
+func TestCSRFRunsAfterValueMiddleware(t *testing.T) {
+	s := testStore(t, Options{})
+	var ctx *core.Context
+	setValue := func(next core.Handler) core.Handler {
+		return func(c *core.Context) core.Response {
+			c.Set("user", "ada")
+			ctx = c
+			return next(c)
+		}
+	}
+	h := core.Chain(func(c *core.Context) core.Response { return nil }, s.Middleware, setValue, s.CSRFMiddleware)
+	resp := h(&core.Context{W: httptest.NewRecorder(), R: httptest.NewRequest("POST", "/", nil)})
+	if f, ok := resp.(core.Failure); !ok || f.StatusCode() != http.StatusForbidden {
+		t.Fatalf("want 403 Failure, got %#v", resp)
+	}
+	if ctx == nil || ctx.Global("user") != "ada" {
+		t.Fatalf("values were not set before the CSRF rejection: %+v", ctx)
 	}
 }
 

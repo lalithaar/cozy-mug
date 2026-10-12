@@ -162,20 +162,18 @@ func (s *Store) EnsureSchema(ctx context.Context) error { return s.backend.ensur
 // no-op for the cookie store.
 func (s *Store) Sweep(ctx context.Context) error { return s.backend.sweep(ctx) }
 
-// Middleware loads the session, enforces CSRF on unsafe methods, runs the
-// handler, then persists any change. Install it inside the Errors middleware and
-// before the views so templates can read the session.
+// Middleware loads the session, runs the handler, then persists any change.
+// Install it inside the Errors middleware and before the views so templates can
+// read the session.
+//
+// It does not enforce CSRF: that is CSRFMiddleware, installed separately after
+// any value processors so a rejected unsafe request still renders its error page
+// with the global values (ADR 0014).
 func (s *Store) Middleware(next core.Handler) core.Handler {
 	return func(c *core.Context) core.Response {
 		ctx := c.R.Context()
 		sess := s.load(ctx, c.R)
 		c.R = core.WithSession(c.R, sess)
-
-		if s.enforceCSRF && !safeMethod(c.Method()) {
-			if err := s.checkCSRF(c.R, sess); err != nil {
-				return c.Error(err)
-			}
-		}
 
 		resp := next(c)
 		if err := s.persist(ctx, c.W, sess); err != nil {
@@ -183,6 +181,27 @@ func (s *Store) Middleware(next core.Handler) core.Handler {
 			return c.Error(err)
 		}
 		return resp
+	}
+}
+
+// CSRFMiddleware rejects unsafe methods (POST/PUT/PATCH/DELETE) whose submitted
+// token (header X-CSRF-Token, else form field "csrf") does not match the
+// session's, in constant time. Install it after the session and any value
+// processors but before the views/handler, so a rejection still carries global
+// values into the error page. It is a no-op when Options.DisableCSRF was set.
+func (s *Store) CSRFMiddleware(next core.Handler) core.Handler {
+	return func(c *core.Context) core.Response {
+		if !s.enforceCSRF || safeMethod(c.Method()) {
+			return next(c)
+		}
+		sess, ok := c.Session().(*Session)
+		if !ok {
+			return c.Error(core.Forbidden(errors.New("session: no session to check CSRF against")))
+		}
+		if err := s.checkCSRF(c.R, sess); err != nil {
+			return c.Error(err)
+		}
+		return next(c)
 	}
 }
 

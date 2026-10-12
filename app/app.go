@@ -1,9 +1,9 @@
 // Package app assembles a cozy-mug application (ADR 0009).
 //
 // It wires the pieces in the correct order — Logger (outermost) -> Errors ->
-// Session -> Processors -> Views -> Router — mounts static assets, and exposes
-// the result as an http.Handler. Apps never hand-wire middleware order; the
-// ordering knowledge lives here.
+// Session -> Processors -> Views -> CSRF -> Router — mounts static assets, and
+// exposes the result as an http.Handler. Apps never hand-wire middleware order;
+// the ordering knowledge lives here.
 package app
 
 import (
@@ -96,7 +96,12 @@ func New(cfg Config) (*App, error) {
 	if len(cfg.Processors) > 0 {
 		r.Use(core.Processors(cfg.Processors...))
 	}
+	// Views before CSRF: a rejected unsafe request still renders its error page
+	// with the global values. Views installs the renderer, it does not dispatch.
 	r.Use(views.Middleware(set))
+	if cfg.Session != nil {
+		r.Use(cfg.Session.CSRFMiddleware)
+	}
 
 	if cfg.UI {
 		r.StaticFS("/static/ui/", ui.FS())

@@ -16,8 +16,9 @@ before every view runs.
 - `core.Processor func(*Context) map[string]any` — a per-request producer.
 - `core.Processors(fns...) core.Middleware` — runs them (nil funcs skipped; a
   later processor wins a key collision).
-- `app.Config.Processors` wires them **after sessions and before views**, so a
-  processor may read the session and its writes reach the template.
+- `app.Config.Processors` wires them **after sessions and before the CSRF barrier
+  and the views**, so a processor may read the session, its writes reach the
+  template, and even a rejected unsafe request's error page carries the values.
 
 This is the "context processor" idea (Django) with an explicit bag instead of a
 merge into loose template names: the current user, a flash message, a site
@@ -60,8 +61,10 @@ request, like the `Context` itself — so there is no global state and no lockin
 
 Running **after sessions** is load-bearing: a flash is read out of the session and
 deleted, and the session middleware (which wraps processors) persists that delete
-on the way out (`0013`). Running **before views/handler** is what makes the value
-present when the view renders.
+on the way out (`0013`). Running **before the CSRF barrier and the views** is what
+makes the value present when the view renders — and, because CSRF enforcement is
+its own middleware installed after the processors (`0013`), also on the error page
+the Errors middleware renders for a rejected unsafe request.
 
 ## Security
 - **Auto-escaping:** values reach templates through `html/template`, so they are
@@ -97,11 +100,14 @@ navigation state, a CSRF/site context.
   and document the key; an untyped bag has no compile-time contract.
 - A processor needs to touch the database on *every* request — question whether
   the value belongs on every page; if it does, it is a real decision.
-- You need values in error pages rendered by the Errors middleware before
-  processors run — reopening this is an ordering decision.
+- A failure occurs **before** the processor middleware (e.g. a session load
+  error) — that error page has no `.Values`. Everything from the processors
+  inward — including the CSRF barrier — already carries them.
 
 ## Consequences
 - `core.Context` gains a private map; `core.Globals` gains `Values()`.
-- `app.Config` gains `Processors`, inserted between Session and Views.
+- `app.Config` gains `Processors`. The assembled order is Logger → Errors →
+  Session → Processors → Views -> CSRF -> Router; CSRF sits last so its rejections
+  render through the view renderer with the bag populated (`0013`, `0014`).
 - Templates may read `.Values`, so a view-model field named `Values` would shadow
   it — reserve the name.

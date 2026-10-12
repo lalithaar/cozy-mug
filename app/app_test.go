@@ -11,6 +11,7 @@ import (
 	"github.com/lalithaar/cozy-mug/app"
 	"github.com/lalithaar/cozy-mug/core"
 	"github.com/lalithaar/cozy-mug/router"
+	"github.com/lalithaar/cozy-mug/session"
 )
 
 func assets() fs.FS {
@@ -94,5 +95,51 @@ func TestUIFuncsReachTemplates(t *testing.T) {
 func TestMissingViewsErrors(t *testing.T) {
 	if _, err := app.New(app.Config{Assets: fstest.MapFS{}}); err == nil {
 		t.Fatal("expected error when views/ is absent")
+	}
+}
+
+// A CSRF rejection is an error the Errors middleware renders; because processors
+// run before the CSRF barrier, the rejection's error page still has global values.
+func TestProcessorValuesReachCSRFErrorPage(t *testing.T) {
+	key := make([]byte, 32)
+	for i := range key {
+		key[i] = byte(i + 1)
+	}
+	store, err := session.New(session.Options{Key: key})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fsys := fstest.MapFS{
+		"views/layouts/base.html": {Data: []byte(`{{define "base"}}{{block "content" .}}{{end}}{{end}}`)},
+		"views/home.html":         {Data: []byte(`{{define "content"}}home{{end}}`)},
+		"views/errors/403.html":   {Data: []byte(`{{define "content"}}who={{.Values.user}}{{end}}`)},
+	}
+	a, err := app.New(app.Config{
+		Assets:  fsys,
+		Session: store,
+		Processors: []core.Processor{
+			func(c *core.Context) map[string]any { return map[string]any{"user": "ada"} },
+		},
+		Routes: func(r *router.Router) {
+			r.Get("/", func(c *core.Context) core.Response {
+				return c.Render(http.StatusOK, "home", nil)
+			})
+			r.Post("/", func(c *core.Context) core.Response {
+				return core.String(http.StatusOK, "posted")
+			})
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rec := httptest.NewRecorder()
+	a.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/", nil))
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("code=%d, want 403", rec.Code)
+	}
+	if got := strings.TrimSpace(rec.Body.String()); got != "who=ada" {
+		t.Fatalf("CSRF error page = %q, want %q", got, "who=ada")
 	}
 }

@@ -87,16 +87,18 @@ deferred items live in `docs/roadmap.md`.**
   map lives in a framework-owned `sessions` table (idempotent `EnsureSchema`), and
   the cookie holds only an opaque 256-bit id; the CSRF token lives in that session
   and is required (form field `csrf` / `X-CSRF-Token`) on unsafe methods, compared
-  constant-time. Revocable, no global secret. A
-  sealed-cookie store (`session.New`, AES-256-GCM, key from `SESSION_KEY`) is the
-  escape hatch. Wired by `app.Config.Session` between Errors and Views; access via
-  `c.Session()` / `session.From(c)`; `{{.CSRF}}` renders the field. See
-  `docs/decisions/0013`.
+  constant-time. Revocable, no global secret. A sealed-cookie store
+  (`session.New`, AES-256-GCM, key from `SESSION_KEY`) is the escape hatch. Wired
+  by `app.Config.Session`: `Store.Middleware` loads/persists, `Store.CSRFMiddleware`
+  enforces CSRF last (after processors and views) so a rejected unsafe request's
+  error page keeps its global values. Access via `c.Session()` / `session.From(c)`;
+  `{{.CSRF}}` renders the field. See `docs/decisions/0013`.
 - **Global context is a request-scoped value bag + processors** — `c.Set` /
   `c.Global` fill a per-request map exposed to every view as `{{.Values.name}}`;
   `app.Config.Processors` (`core.Processor`, `func(*Context) map[string]any`) run
-  after sessions and before views, so a processor may read the session (flash) and
-  its value reaches the template. CSRF stays first-class `{{.CSRF}}`. See
+  after sessions and before the CSRF barrier/views, so a processor may read the
+  session (flash) and its value reaches the template — including a rejected unsafe
+  request's error page. CSRF stays first-class `{{.CSRF}}`. See
   `docs/decisions/0014`.
 
 ### Open — do not guess, surface to the human

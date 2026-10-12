@@ -8,9 +8,12 @@
 ## Opinion
 A session is a small `map[string]any` kept **server-side**, in a `sessions` table
 that the framework owns. The browser holds only an opaque 256-bit id in a
-`HttpOnly` cookie. A `session` package provides the `*Store` and a middleware
-that loads the session, enforces **CSRF on unsafe methods**, and writes back only
-when the session changed.
+`HttpOnly` cookie. A `session` package provides the `*Store` and two middlewares:
+`Store.Middleware` loads the session and writes it back only when it changed;
+`Store.CSRFMiddleware` enforces **CSRF on unsafe methods** just before the
+handler. The `app` package installs CSRF *after* the value processors and the
+view renderer, so a rejected unsafe request still renders its error page with the
+global values (`0014`).
 
 - `session.NewStore(db, Options{Secure, …})` — the **default**. `db` is a
   `*data.DB` (`0012`). Sessions are stored in a `sessions` table; the framework
@@ -46,7 +49,8 @@ by `Sweep`.
 **CSRF:** the token lives in the session (server-side for the default store); a
 request must echo it in the `csrf` form field or the `X-CSRF-Token` header,
 compared in constant time. Safe methods (GET/HEAD/OPTIONS/TRACE) are exempt.
-Enforcement is on by default; `Options.DisableCSRF` opts out.
+Enforcement is on by default (`Store.CSRFMiddleware`, installed last so error
+pages keep their global values — `0014`); `Options.DisableCSRF` opts out.
 
 ## Because
 Two facts drove the reversal from the cookie default. The first draft argued the
