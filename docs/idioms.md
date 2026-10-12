@@ -119,14 +119,14 @@ func (s *Store) noteByID(ctx context.Context, id int64) (Note, error) {
   fixed set. The DSN is a secret: read it from the environment, never log it. (`0012`)
 
 ## Sessions & CSRF (`0013`)
-A session is a sealed client cookie; wire it in `app.Config` (it sits between
-Errors and Views) and read it in handlers.
+Sessions live server-side by default (a framework-owned `sessions` table); wire the
+store in `app.Config` (it sits between Errors and Views) and read it in handlers.
 
 ```go
-sessions := core.Must(session.New(session.Options{
-	Key:    core.Must(session.Key("SESSION_KEY")), // base64, 32 bytes; read from env
-	Secure: !isDev,                                 // Secure cookie on HTTPS
+sessions := core.Must(session.NewStore(db, session.Options{
+	Secure: !isDev, // Secure cookie on HTTPS
 }))
+if err := sessions.EnsureSchema(ctx); err != nil { log.Fatal(err) } // idempotent
 app.Must(app.Config{ /* … */ Session: sessions })
 ```
 
@@ -145,10 +145,12 @@ func login(c *core.Context) core.Response {
 - Any form that posts includes `{{.CSRF}}`; the middleware rejects a missing or
   wrong token with 403 *before* the handler runs. For JS, send `X-CSRF-Token`. (`0013`)
 - Safe methods (GET/HEAD/OPTIONS/TRACE) need no token; logout calls `s.Destroy()`. (`0013`)
-- Values are JSON-encoded into the cookie: keep them small and JSON-friendly. An
-  oversize session is dropped (never partially written). (`0013`)
-- The key is a secret: `session.Key("SESSION_KEY")` reads it without echoing it.
-  Dev may use an ephemeral key; prod must set one. (`0013`, secrets heuristic)
+- Values are JSON-encoded into the session row, so keep them small and
+  JSON-friendly. (`0013`)
+- Need no server state? `session.New(session.Options{Key})` is the sealed-cookie
+  escape hatch — but it cannot revoke; prefer the DB store. The key is a secret:
+  `session.Key("SESSION_KEY")` reads it without echoing it. (`0013`, secrets heuristic)
+- `Sweep(ctx)` drops expired rows; expired rows are ignored on read regardless. (`0013`)
 
 ## Report an error (`0007`)
 Loaders return a structured error; the route maps it with `c.Error`. Wire

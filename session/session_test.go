@@ -1,13 +1,16 @@
 package session
 
 import (
+	"context"
 	"encoding/base64"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/lalithaar/cozy-mug/core"
+	"github.com/lalithaar/cozy-mug/data"
 )
 
 func testStore(t *testing.T, opts Options) *Store {
@@ -217,10 +220,172 @@ func TestRegenerate(t *testing.T) {
 func TestOversizeSessionNotPersisted(t *testing.T) {
 	s := testStore(t, Options{})
 	_, cookies := do(s, httptest.NewRequest("GET", "/", nil), func(c *core.Context) {
-		c.Session().Set("big", strings.Repeat("x", 5000))
+		c.Session().Set("k", strings.Repeat("x", 5000))
 	})
 	if len(cookies) != 0 {
-		t.Fatalf("oversize session should not be persisted, got cookie of %d bytes", len(cookies[0].Value))
+		t.Fatalf("oversize session set a cookie: %v", cookies)
+	}
+}
+
+// --- database store -----------------------------------------------------------
+
+func testDBStore(t *testing.T, opts Options) (*Store, *data.DB) {
+	t.Helper()
+	ctx := context.Background()
+	db, err := data.Open(ctx, ":memory:")
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+	s, err := NewStore(db, opts)
+	if err != nil {
+		t.Fatalf("NewStore: %v", err)
+	}
+	if err := s.EnsureSchema(ctx); err != nil {
+		t.Fatalf("EnsureSchema: %v", err)
+	}
+	return s, db
+}
+
+func countSessions(t *testing.T, db *data.DB) int {
+	t.Helper()
+	rows, err := data.All[sessionRow](context.Background(), db,
+		`select id, data, created_at, expires_at from sessions`)
+	if err != nil {
+		t.Fatalf("count: %v", err)
+	}
+	return len(rows)
+}
+
+func TestNewStoreRejectsNilDB(t *testing.T) {
+	if _, err := NewStore(nil, Options{}); err == nil {
+		t.Fatal("NewStore(nil) should error")
+	}
+}
+
+func TestDBStoreRoundTrip(t *testing.T) {
+	s, _ := testDBStore(t, Options{})
+
+	var id string
+	_, cookies := do(s, httptest.NewRequest("GET", "/", nil), func(c *core.Context) {
+		c.Session().Set("user", "ada")
+		id = From(c).ID()
+	})
+	if len(cookies) != 1 {
+		t.Fatalf("want 1 cookie, got %d", len(cookies))
+	}
+	if cookies[0].Value != id {
+		t.Fatalf("cookie should carry the opaque session id: got %q want %q", cookies[0].Value, id)
+	}
+	if strings.Contains(cookies[0].Value, "ada") {
+		t.Fatal("session data leaked into the cookie")
+	}
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.AddCookie(cookies[0])
+	var got any
+	do(s, req, func(c *core.Context) { got = c.Session().Get("user") })
+	if got != "ada" {
+		t.Fatalf("round-trip lost value: %v", got)
+	}
+}
+
+func TestDBStoreUnknownIDIsEmpty(t *testing.T) {
+	s, _ := testDBStore(t, Options{})
+	req := httptest.NewRequest("GET", "/", nil)
+	req.AddCookie(&http.Cookie{Name: DefaultName, Value: "no-such-session"})
+	var got any
+	do(s, req, func(c *core.Context) { got = c.Session().Get("user") })
+	if got != nil {
+		t.Fatalf("unknown id should yield an empty session, got %v", got)
+	}
+}
+
+func TestDBStoreDestroyDeletesRow(t *testing.T) {
+	s, db := testDBStore(t, Options{})
+	_, cookies := do(s, httptest.NewRequest("GET", "/", nil), func(c *core.Context) {
+		c.Session().Set("k", "v")
+	})
+	if countSessions(t, db) != 1 {
+		t.Fatalf("setup: want 1 row, got %d", countSessions(t, db))
+	}
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.AddCookie(cookies[0])
+	_, after := do(s, req, func(c *core.Context) { c.Session().Destroy() })
+	if len(after) != 1 || after[0].MaxAge >= 0 || after[0].Value != "" {
+		t.Fatalf("destroy did not clear the cookie: %+v", after)
+	}
+	if countSessions(t, db) != 0 {
+		t.Fatal("destroy left a session row behind")
+	}
+}
+
+func TestDBStoreExpiryAndSweep(t *testing.T) {
+	ctx := context.Background()
+	s, db := testDBStore(t, Options{})
+	past := time.Now().Add(-time.Hour).Unix()
+	if _, err := data.Exec(ctx, db,
+		`insert into sessions (id, data, created_at, expires_at) values (?, ?, ?, ?)`,
+		"expired", `{"user":"ada"}`, past, past); err != nil {
+		t.Fatalf("insert: %v", err)
+	}
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.AddCookie(&http.Cookie{Name: DefaultName, Value: "expired"})
+	var got any
+	do(s, req, func(c *core.Context) { got = c.Session().Get("user") })
+	if got != nil {
+		t.Fatalf("expired session should be dead, got %v", got)
+	}
+
+	if err := s.Sweep(ctx); err != nil {
+		t.Fatalf("Sweep: %v", err)
+	}
+	if countSessions(t, db) != 0 {
+		t.Fatal("Sweep left expired rows")
+	}
+}
+
+func TestDBStoreAbsoluteCap(t *testing.T) {
+	ctx := context.Background()
+	s, db := testDBStore(t, Options{Absolute: time.Minute})
+	now := time.Now().Unix()
+	if _, err := data.Exec(ctx, db,
+		`insert into sessions (id, data, created_at, expires_at) values (?, ?, ?, ?)`,
+		"capped", `{"user":"ada"}`, now-3600, now+3600); err != nil {
+		t.Fatalf("insert: %v", err)
+	}
+
+	req := httptest.NewRequest("GET", "/", nil)
+	req.AddCookie(&http.Cookie{Name: DefaultName, Value: "capped"})
+	var got any
+	do(s, req, func(c *core.Context) { got = c.Session().Get("user") })
+	if got != nil {
+		t.Fatalf("session past its absolute cap should be dead, got %v", got)
+	}
+}
+
+func TestDBStoreCSRF(t *testing.T) {
+	s, _ := testDBStore(t, Options{})
+
+	var tok string
+	_, cookies := do(s, httptest.NewRequest("GET", "/", nil), func(c *core.Context) {
+		tok = c.Session().CSRFToken()
+	})
+	if tok == "" || len(cookies) != 1 {
+		t.Fatalf("GET did not mint a token/cookie: %q %v", tok, cookies)
+	}
+
+	if code, _ := do(s, httptest.NewRequest("POST", "/", nil), func(c *core.Context) {}); code != 403 {
+		t.Fatalf("POST without token: code %d, want 403", code)
+	}
+
+	form := httptest.NewRequest("POST", "/", strings.NewReader("csrf="+tok))
+	form.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	form.AddCookie(cookies[0])
+	if code, _ := do(s, form, func(c *core.Context) {}); code != 200 {
+		t.Fatalf("POST with token: code %d, want 200", code)
 	}
 }
 

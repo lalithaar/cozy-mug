@@ -5,7 +5,6 @@ package main
 
 import (
 	"context"
-	"crypto/rand"
 	"embed"
 	"log"
 	"os"
@@ -39,12 +38,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Sessions + CSRF. The key is a secret: read it from the environment. Dev
-	// falls back to an ephemeral key so `go run` works with no setup.
-	sessions := core.Must(session.New(session.Options{
-		Key:    sessionKey(),
+	// Sessions + CSRF, kept server-side in the database (ADR 0013): the cookie
+	// holds only an opaque id, so sessions are revocable and there is no global
+	// key to leak. The framework owns this one table (not an app migration).
+	sessions := core.Must(session.NewStore(db, session.Options{
 		Secure: os.Getenv("DEV") == "0",
 	}))
+	if err := sessions.EnsureSchema(ctx); err != nil {
+		log.Fatal(err)
+	}
 
 	a := app.Must(app.Config{
 		Assets:  assets,                  // views/ (+ static/ at /static/)
@@ -55,21 +57,4 @@ func main() {
 		Session: sessions,                // sessions + CSRF, on by default
 	})
 	log.Fatal(a.ListenAndServe(":8080"))
-}
-
-// sessionKey reads SESSION_KEY (base64, 32 bytes). In production it must be set;
-// in development an ephemeral key is generated so the example runs unconfigured.
-func sessionKey() []byte {
-	if os.Getenv("SESSION_KEY") == "" {
-		if os.Getenv("DEV") == "0" {
-			log.Fatal("SESSION_KEY is required in production: openssl rand -base64 32")
-		}
-		log.Println("warning: SESSION_KEY unset; using an ephemeral dev key (sessions reset on restart)")
-		b := make([]byte, 32)
-		if _, err := rand.Read(b); err != nil {
-			log.Fatal(err)
-		}
-		return b
-	}
-	return core.Must(session.Key("SESSION_KEY"))
 }

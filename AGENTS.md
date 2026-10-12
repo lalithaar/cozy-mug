@@ -83,13 +83,15 @@ UI. Nothing is undecided; deferred items live in `docs/roadmap.md`.**
   `core.NotFound`; DB by closure DI. `DB` wraps (never embeds) `*sql.DB` so there
   is no raw `db.Exec` footgun. Injection/secrets guards baked in (see the two SQL
   heuristics). Migrations deferred. See `docs/decisions/0012`.
-- **Sessions & CSRF are a sealed cookie, no server store** — `session` package:
-  an AES-256-GCM-sealed client cookie holds a small JSON map; the CSRF token lives
-  in that cookie and is required (form field `csrf` / `X-CSRF-Token`) on unsafe
-  methods, compared constant-time; key from `SESSION_KEY` (base64, 32 bytes; dev
-  ephemeral, prod fails loud); wired by `app.Config.Session` between Errors and
-  Views; access via `c.Session()` / `session.From(c)`; `{{.CSRF}}` renders the
-  field. See `docs/decisions/0013`.
+- **Sessions & CSRF are server-side by default** — `session` package: a small JSON
+  map lives in a framework-owned `sessions` table (idempotent `EnsureSchema`), and
+  the cookie holds only an opaque 256-bit id; the CSRF token lives in that session
+  and is required (form field `csrf` / `X-CSRF-Token`) on unsafe methods, compared
+  constant-time. Revocable, no global secret. A
+  sealed-cookie store (`session.New`, AES-256-GCM, key from `SESSION_KEY`) is the
+  escape hatch. Wired by `app.Config.Session` between Errors and Views; access via
+  `c.Session()` / `session.From(c)`; `{{.CSRF}}` renders the field. See
+  `docs/decisions/0013`.
 
 ### Open — do not guess, surface to the human
 Per-area gap map + stance: `docs/gap.md`. Nothing is currently undecided. Deferred

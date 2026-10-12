@@ -16,10 +16,6 @@ import (
 	"github.com/lalithaar/cozy-mug/session"
 )
 
-// testKey is a fixed 32-byte session key so cookies survive across a test's
-// requests.
-var testKey = []byte("0123456789abcdef0123456789abcdef")
-
 func newApp(t *testing.T) http.Handler {
 	t.Helper()
 	ctx := context.Background()
@@ -35,9 +31,12 @@ func newApp(t *testing.T) http.Handler {
 		t.Fatalf("schema: %v", err)
 	}
 
-	sessions, err := session.New(session.Options{Key: testKey})
+	sessions, err := session.NewStore(db, session.Options{})
 	if err != nil {
 		t.Fatalf("session: %v", err)
+	}
+	if err := sessions.EnsureSchema(ctx); err != nil {
+		t.Fatalf("session schema: %v", err)
 	}
 
 	return app.Must(app.Config{

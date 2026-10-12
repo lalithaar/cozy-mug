@@ -55,7 +55,7 @@ myapp/
 | `views` | Block layouts and partials over `html/template` |
 | `app` | Assembles the pieces (logger, errors, views, routes) |
 | `data` | `database/sql` helpers: SQLite or Postgres, no ORM |
-| `session` | Sealed-cookie sessions and CSRF protection, on by default |
+| `session` | Server-side sessions (revocable) and CSRF protection, on by default |
 | `funcs` | Optional template helpers (loop metadata, formatting) |
 | `ui` | Optional component library (opt-in) |
 | `examples/app` | Canonical example app (uses `app` glue + 0009 layout) |
@@ -68,9 +68,10 @@ From a clone of this repository:
 go run ./examples/app      # http://localhost:8080 (SQLite; creates notes.db)
 ```
 
-Set `DATABASE_URL` to a `postgres://…` URL to run the same app on Postgres. Set
-`SESSION_KEY` (base64, 32 bytes — `openssl rand -base64 32`) for stable session
-cookies in production; in development an ephemeral key is generated for you.
+Set `DATABASE_URL` to a `postgres://…` URL to run the same app on Postgres.
+Sessions live in that database by default (revocable; no key to manage). To run
+without server state, use the sealed-cookie store (`session.New`) and set
+`SESSION_KEY` (base64, 32 bytes — `openssl rand -base64 32`).
 
 ## Non-goals
 

@@ -24,7 +24,7 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 - [x] **Data access** (`gap` 8, `0012`) — `data` package: `Open` infers the dialect (SQLite default / Postgres) and carries both drivers; `All`/`One`/`Exec`/`db.Tx`; `db:"col"` scanner; `One` -> `core.NotFound`; DB by closure DI; injection/secret guards. Example app wired to SQLite. (Getting-started write-up lands with *Identity & docs*.) Migrations stay deferred (`gap` 9).
 - [ ] **Global context / processors** (`gap` 7) — current user, flash, CSRF injected into every view.
 - [ ] **Forms** (`gap` 6) — bind -> validate -> re-render-with-errors.
-- [x] **Sessions + CSRF** (`gap` 4, `0013`) — sealed-cookie sessions (AES-256-GCM, no server store) + CSRF tokens on unsafe methods, on by default via `app.Config.Session`; `c.Session()` / `session.From(c)`, `{{.CSRF}}`; key from `SESSION_KEY`. (`0013` drafted as proposed — pending human sign-off.)
+- [x] **Sessions + CSRF** (`gap` 4, `0013`) — server-side sessions by default (`session.NewStore(db)`, framework-owned `sessions` table, opaque id cookie, revocable, no global key) with a sealed-cookie escape hatch (`session.New`); CSRF tokens required on unsafe methods; on by default via `app.Config.Session`; `c.Session()` / `session.From(c)`, `{{.CSRF}}`. (`0013` drafted as proposed — pending human sign-off.)
 - [ ] **Settings** (`gap` 13) — minimal env-based config convention.
 - [ ] **Default UI** (`0003`, `0010`) — architecture decided + `ui` scaffolded; component set and styling TBD.
 - [ ] **Template helpers** (`0006`, `0011`) — `funcs` package (opt-in): loop metadata + arithmetic + formatting (text/join/default/pluralize/comma/date/linebreaksbr) done; `super`/nesting idiom documented.

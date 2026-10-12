@@ -44,9 +44,9 @@ type Config struct {
 	// Funcs are the app's own template funcs (optional).
 	Funcs template.FuncMap
 
-	// Session enables cookie-backed sessions and CSRF protection (0013). nil
-	// disables both. Build it with session.New from a key read out of the
-	// environment. The example wires it here.
+	// Session enables sessions and CSRF protection (0013). nil disables both.
+	// The default is session.NewStore(db) (server-side, revocable); session.New
+	// seals sessions into the cookie instead. The example wires it here.
 	Session *session.Store
 }
 
