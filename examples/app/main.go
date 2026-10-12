@@ -10,6 +10,7 @@ import (
 
 	"github.com/lalithaar/cozy-mug/app"
 	"github.com/lalithaar/cozy-mug/examples/app/handlers"
+	"github.com/lalithaar/cozy-mug/funcs"
 )
 
 //go:embed views static
@@ -21,6 +22,7 @@ func main() {
 		Routes: handlers.Register,       // func(*router.Router)
 		Dev:    os.Getenv("DEV") != "0", // non-production unless DEV=0
 		UI:     true,                    // opt into the (scaffold) ui library
+		Funcs:  funcs.Funcs(),           // opt into the loop/arithmetic template funcs
 	})
 	log.Fatal(a.ListenAndServe(":8080"))
 }

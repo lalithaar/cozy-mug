@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{block "title" .}}cozy-mug example{{end}}</title>
-<link rel="stylesheet" href="/static/style.css">
-<link rel="stylesheet" href="/static/ui/base.css">
+{{block "head" .}}{{template "layout-head" .}}{{end}}
 </head>
 <body>
 <header><a href="{{.URL "home"}}">cozy-mug notes</a></header>
 <main>{{block "content" .}}{{end}}</main>
+{{block "scripts" .}}{{end}}
 </body>
 </html>
 {{end}}

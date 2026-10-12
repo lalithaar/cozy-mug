@@ -29,7 +29,7 @@ default — things Django/Rails had to engineer. **Do not rebuild these.**
 | 2 | Routing | `ServeMux` (1.22 patterns) | named routes + reverse URL (`url_for`), grouping, per-route middleware | Fill small |
 | 3 | Middleware pipeline | `Handler` chaining | a standard set + ordering convention; request-scoped context | Fill |
 | 4 | Sessions & CSRF | `net/http` cookies, `crypto/*` | signed session store + CSRF tokens, wired by default | Fill |
-| 5 | Views | `html/template` | layout inheritance + partials + helper conventions | Fill |
+| 5 | Views | `html/template` | layouts/partials + loop metadata + `super` idiom done (opt-in `funcs`, `0011`); formatting filters (truncate, date, pluralize, linebreaks) still open | Fill |
 | 6 | Forms | `net/url` parsing | bind -> validate -> re-render-with-errors loop | Fill |
 | 7 | Global context | `context.Context` | "context processors": current user, flash, CSRF in every view | Fill |
 | 8 | Data access | `database/sql` + driver | query ergonomics; **no ORM** (frugality) | Partial + hatch |

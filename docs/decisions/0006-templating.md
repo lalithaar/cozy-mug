@@ -64,3 +64,8 @@ Needing typed components with slots/children, or any engine other than
 ## Revisit if
 A genuine need for typed components/slots or streaming emerges, or
 `html/template`'s block model proves insufficient for nested layouts.
+
+## See also
+`0011` — the opt-in template func library (`funcs`) and the `super` / additive
+block idiom (partial-call), which cover two `html/template` gaps without changing
+this model.

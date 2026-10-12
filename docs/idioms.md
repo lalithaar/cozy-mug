@@ -35,6 +35,43 @@ func show(c *core.Context) core.Response {
 - `.URL` is `{{.URL "user" "id" .User.ID}}` (name/value pairs); it errors rather
   than emitting an empty link. (`0006`)
 
+## Loop helpers + arithmetic (`0011`)
+`html/template` has no arithmetic and no loop positions. Add the opt-in `funcs`
+package to the func map:
+
+```go
+a := app.Must(app.Config{Assets: assets, Routes: handlers.Register, Funcs: funcs.Funcs()})
+```
+
+```html
+{{range $i, $n := .Notes}}
+  <li class="{{cycle $i "odd" "even"}}">{{counter $i}}. {{$n.Title}}</li>
+{{end}}
+```
+
+- Available: `counter` (1-based), `first`, `last` (needs the collection),
+  `even`/`odd`, `cycle`, `add`, `sub`. (`0011`)
+
+## Add to a base region — `super` (`0011`)
+`{{block}}` **replaces** wholesale; there is no `super`. Recover "parent + my
+addition" by factoring the region into a partial and calling it:
+
+`views/layouts/head.html`:
+```html
+{{define "layout-head"}}<link rel="stylesheet" href="/static/style.css">{{end}}
+```
+`views/layouts/base.html` (`{{block}}` default calls the partial):
+```html
+{{block "head" .}}{{template "layout-head" .}}{{end}}
+```
+A view that wants the default **plus** its own content re-calls the partial:
+```html
+{{define "head"}}{{template "layout-head" .}}<meta name="note-id" content="{{.Note.ID}}">{{end}}
+```
+Multi-level layouts compose the same way (a base region calling another base's
+partial). No engine change, no new model — just `{{define}}`/`{{template}}`. (`0011`)
+
+
 ## Report an error (`0007`)
 Loaders return a structured error; the route maps it with `c.Error`. Wire
 `Logger` + `Errors` once, Logger outermost.

@@ -69,6 +69,11 @@ layout, and UI architecture decided; do not guess `open` items.**
   escaping; internal `.cm-*` classes + public `--cm-*` variables. Opt-in; core
   never depends on it. Architecture only — designs/styling not yet decided. See
   `docs/decisions/0010`.
+- **Template helpers are an opt-in package; `super` is an idiom** — `funcs`
+  (opt-in via `Config.Funcs`) adds what `html/template` lacks (loop metadata +
+  arithmetic now). Additive blocks use the partial-call idiom (factor a base
+  region into a partial; a view calls it then adds). Engine stays `0006`. See
+  `docs/decisions/0011`.
 
 ### Open — do not guess, surface to the human
 Per-area gap map + stance: `docs/gap.md`. Items:

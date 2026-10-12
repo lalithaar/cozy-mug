@@ -27,6 +27,7 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 - [ ] **Sessions + CSRF** (`gap` 4) — signed cookie store + tokens, on by default.
 - [ ] **Settings** (`gap` 13) — minimal env-based config convention.
 - [ ] **Default UI** (`0003`, `0010`) — architecture decided + `ui` scaffolded; component set and styling TBD.
+- [ ] **Template helpers** (`0006`, `0011`) — `funcs` package (opt-in): loop metadata + arithmetic done; `super`/nesting idiom documented; formatting helpers pending.
 - [ ] **Identity & docs** — module path now `github.com/lalithaar/cozy-mug` (`0009`); TODO: README + getting-started, and a tag with the new path.
 - [ ] **Testing convention** (`gap` 14) — documented `httptest` / test-client seam (agent CLI may slip).
 
