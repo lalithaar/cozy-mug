@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"cozymug/core"
+	"github.com/lalithaar/cozy-mug/core"
 )
 
 // Group mounts routes under a shared path prefix and middleware.

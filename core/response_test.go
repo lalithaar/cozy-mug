@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"cozymug/core"
+	"github.com/lalithaar/cozy-mug/core"
 )
 
 func TestErrorEscapesMessage(t *testing.T) {

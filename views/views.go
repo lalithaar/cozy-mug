@@ -19,7 +19,7 @@ import (
 	"path"
 	"strings"
 
-	"cozymug/core"
+	"github.com/lalithaar/cozy-mug/core"
 )
 
 // DefaultLayout is the template name executed for every view.

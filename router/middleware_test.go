@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"cozymug/core"
-	"cozymug/router"
+	"github.com/lalithaar/cozy-mug/core"
+	"github.com/lalithaar/cozy-mug/router"
 )
 
 func tagMW(tag string, log *[]string) core.Middleware {

@@ -30,8 +30,8 @@ sessions except these files. Rules:
 
 ## Opinion ledger
 Firm opinions live in `docs/decisions/`. Project status:
-**early skeleton — handler contract, routing, templating, errors/logging
-decided; do not guess `open` items.**
+**early skeleton — handler contract, routing, templating, errors/logging, project
+layout, and UI architecture decided; do not guess `open` items.**
 
 ### Firm
 - **Frugality is the top-level filter** — every addition (dep, line, export,
@@ -60,8 +60,16 @@ decided; do not guess `open` items.**
 - **Versioning tracks decided-and-built readiness** — pre-1.0 numbers track the
   decided 90%, not time; the v0.1 gate is "a stranger ships one small app with no
   wall"; release criteria live in `docs/roadmap.md`. See `docs/decisions/0008`.
+- **App layout is conventional, assembled by glue** — `main.go`, `handlers/`
+  (handlers + loaders + view models), `views/`, `static/` (served at `/static/`);
+  the `app` package wires `Logger → Errors → Views → Router` so apps never
+  hand-wire order. Module path `github.com/lalithaar/cozy-mug`. See `docs/decisions/0009`.
+- **UI is an optional, import-only component library** — the `ui` package exposes
+  components as template funcs (Vue-like), backed by internal partials for safe
+  escaping; internal `.cm-*` classes + public `--cm-*` variables. Opt-in; core
+  never depends on it. Architecture only — designs/styling not yet decided. See
+  `docs/decisions/0010`.
 
 ### Open — do not guess, surface to the human
 Per-area gap map + stance: `docs/gap.md`. Items:
 - data / DB layer
-- project layout / boilerplate contract

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"cozymug/core"
-	"cozymug/router"
+	"github.com/lalithaar/cozy-mug/core"
+	"github.com/lalithaar/cozy-mug/router"
 )
 
 func TestContextReverseURL(t *testing.T) {

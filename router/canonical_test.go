@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"cozymug/router"
+	"github.com/lalithaar/cozy-mug/router"
 )
 
 func TestCanonicalSlashRedirectsGET(t *testing.T) {

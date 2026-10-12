@@ -70,8 +70,8 @@ Operational rules. Every entry uses this shape:
 - Status: firm
 
 ### Just enough styling to be functional
-- Opinion: The default UI provides the minimum to ship a usable, accessible page without touching CSS — and it is **not a dependency unless you opt in**. Import it or don't; it's never required.
-- Because: Styling must never be a blocker to shipping; defaults should carry you, and removing them should cost nothing. Spend exactly enough to clear the bar, no more.
+- Opinion: The default UI gives the minimum for a usable, accessible page without touching CSS. A dev never *needs* it for the app to work — adopting it (and choosing to keep/theme a style) is a maintenance commitment they opt into, not an obligation.
+- Because: Styling must never block shipping; the default carries you, and styling you choose to maintain is a dependency you take on *from the moment you choose it*. Spend exactly enough to clear the bar, no more.
 - Apply when: Building the default UI / component library (`ui`).
 - Deviate/ask: Any styling the core depends on, or that becomes mandatory, is a bug — flag it.
 - Status: firm

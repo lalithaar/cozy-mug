@@ -3,7 +3,7 @@ package router_test
 import (
 	"testing"
 
-	"cozymug/router"
+	"github.com/lalithaar/cozy-mug/router"
 )
 
 func TestDuplicateRouteNamePanics(t *testing.T) {

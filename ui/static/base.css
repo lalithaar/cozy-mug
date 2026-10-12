@@ -1,0 +1,7 @@
+/*
+ * cozy-mug ui — base stylesheet
+ *
+ * STATUS: placeholder. No styling has been decided yet (ADR 0010). The public
+ * theming seam will be --cm-* CSS custom properties; the selectors will use
+ * internal, namespaced .cm-* classes. Nothing is defined here on purpose.
+ */

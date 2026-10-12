@@ -68,3 +68,50 @@ r.Use(core.Logger(opts), core.Errors(opts), views.Middleware(set))
   or the `core.HTTPError` struct to set the status. (`0007`)
 - Add `views/errors/<status>.html` to brand error pages; `Errors` falls back to a
   plain page. Dev shows status/stack/id; prod hides causes. (`0007`)
+
+## Assemble an app (`0009`)
+An app is a conventional layout assembled by the `app` package. `main.go` stays
+tiny; handlers live in `handlers/`; routing is one `Register` function.
+
+```
+myapp/
+  main.go
+  handlers/
+  views/    static/
+```
+
+`main.go`:
+```go
+//go:embed views static
+var assets embed.FS
+
+func main() {
+	a := app.Must(app.Config{
+		Assets: assets,             // views/ (+ static/ if present)
+		Routes: handlers.Register,  // func(*router.Router)
+		Dev:    os.Getenv("APP_ENV") != "production",
+		UI:     true,               // opt into the default component library
+	})
+	log.Fatal(a.ListenAndServe(":8080"))
+}
+```
+
+`handlers/users.go`:
+```go
+func Register(r *router.Router) {
+	r.Get("/users/{id}", showUser).As("user")
+}
+
+func showUser(c *core.Context) core.Response {
+	u, err := loadUser(c)
+	if err != nil {
+		return c.Error(err)
+	}
+	return c.Render(http.StatusOK, "users/show", &UserView{User: u})
+}
+```
+
+- Middleware order (Logger -> Errors -> Views) is wired by `app`, never by hand.
+- The app is an `http.Handler`, so tests drive it with `httptest` (`a.ServeHTTP`).
+- `static/` is served at `/static/`; with `UI: true`, the `ui` stylesheet is at
+  `/static/ui/base.css`. (`0009`, `0010`)

@@ -19,15 +19,15 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 
 ## v0.1.0 — first usable release
 
-- [ ] **Project layout / scaffolding** (`gap` 1, `open`) — conventional dirs, `main.go` wiring, how run vs build works; ADR.
-- [ ] **App glue** — one constructor wiring Logger + Errors + Views + Router (no per-app hand-wiring).
+- [ ] **Project layout / scaffolding** (`gap` 1) — decided (`0009`): conventional dirs, handlers/, views/, static/. TODO: canonical example app + getting-started.
+- [x] **App glue** — `app` package (`0009`): `app.New(Config)` wires Logger -> Errors -> Views -> Router, mounts static, exposes an `http.Handler`.
 - [ ] **Data access** (`gap` 8, `open`) — decide the idiom (`database/sql` + thin helpers + raw-SQL hatch; no ORM) and document it.
 - [ ] **Global context / processors** (`gap` 7) — current user, flash, CSRF injected into every view.
 - [ ] **Forms** (`gap` 6) — bind -> validate -> re-render-with-errors.
 - [ ] **Sessions + CSRF** (`gap` 4) — signed cookie store + tokens, on by default.
 - [ ] **Settings** (`gap` 13) — minimal env-based config convention.
-- [ ] **Default UI** (`0003`) — minimal system-color CSS + tiny components.
-- [ ] **Identity & docs** — replace the `cozymug` placeholder module path; README + getting-started.
+- [ ] **Default UI** (`0003`, `0010`) — architecture decided + `ui` scaffolded; component set and styling TBD.
+- [ ] **Identity & docs** — module path now `github.com/lalithaar/cozy-mug` (`0009`); TODO: README + getting-started, and a tag with the new path.
 - [ ] **Testing convention** (`gap` 14) — documented `httptest` / test-client seam (agent CLI may slip).
 
 ### Deferred past v0.1 (reopening = ADR)

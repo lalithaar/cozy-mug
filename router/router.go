@@ -8,7 +8,7 @@ import (
 	"path"
 	"strings"
 
-	"cozymug/core"
+	"github.com/lalithaar/cozy-mug/core"
 )
 
 // Router wraps net/http's ServeMux (Go 1.22+ patterns) and adds middleware,

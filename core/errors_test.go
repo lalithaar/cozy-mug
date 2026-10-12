@@ -10,8 +10,8 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"cozymug/core"
-	"cozymug/views"
+	"github.com/lalithaar/cozy-mug/core"
+	"github.com/lalithaar/cozy-mug/views"
 )
 
 func serve(h core.Handler, mw ...core.Middleware) *httptest.ResponseRecorder {

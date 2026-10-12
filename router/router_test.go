@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"cozymug/core"
-	"cozymug/router"
+	"github.com/lalithaar/cozy-mug/core"
+	"github.com/lalithaar/cozy-mug/router"
 )
 
 func ok(*core.Context) core.Response { return core.Status(http.StatusOK) }

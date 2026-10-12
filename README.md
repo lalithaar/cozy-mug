@@ -31,19 +31,31 @@ r.Get("/users/{id}", func(c *core.Context) core.Response {
 
 ## Status
 
-Early and **pre-release**: the framework core is built (see the latest release),
-while the app-level pieces are still in progress. It is **not yet installable** —
-the module path is a placeholder. A roadmap ships in the repository.
+Early and **pre-release** — the API may change. The framework core is built, and
+apps are assembled by the `app` package; the remaining app-level pieces (data,
+sessions, forms, configuration) are still in progress. A roadmap ships in the
+repository.
 
 ## Layout
+
+An app follows a conventional layout, assembled by the `app` package:
+
+```
+myapp/
+  main.go        # tiny: build the app, run it
+  handlers/      # handlers + loaders + view models, one file per feature
+  views/         # templates: layouts/, partials/, errors/
+  static/        # assets, served under /static/
+```
 
 | Package | What it does |
 | --- | --- |
 | `core` | Request context, handlers, responses, errors, logging |
 | `router` | Named routes, reverse URLs, groups, middleware |
 | `views` | Block layouts and partials over `html/template` |
-| `examples/hello` | Minimal app |
-| `dummy` | A slightly larger app (groups, params, a partial, an error page) |
+| `app` | Assembles the pieces (logger, errors, views, routes) |
+| `ui` | Optional component library (opt-in) |
+| `examples/hello`, `dummy` | Runnable apps |
 
 ## Try it
 

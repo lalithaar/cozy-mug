@@ -7,9 +7,9 @@ import (
 	"testing"
 	"testing/fstest"
 
-	"cozymug/core"
-	"cozymug/router"
-	"cozymug/views"
+	"github.com/lalithaar/cozy-mug/core"
+	"github.com/lalithaar/cozy-mug/router"
+	"github.com/lalithaar/cozy-mug/views"
 )
 
 func testFS() fstest.MapFS {

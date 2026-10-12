@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"cozymug/router"
+	"github.com/lalithaar/cozy-mug/router"
 )
 
 func TestCanonicalSlashNoOpenRedirect(t *testing.T) {
