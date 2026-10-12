@@ -31,6 +31,14 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 - [ ] **Identity & docs** — module path now `github.com/lalithaar/cozy-mug` (`0009`); TODO: README + getting-started, and a tag with the new path.
 - [ ] **Testing convention** (`gap` 14) — documented `httptest` / test-client seam (agent CLI may slip).
 
+### WIP / follow-ups (not release gates)
+- **Data-layer verification** (`0012`) — the guards are written but unproven:
+  tests for Postgres dialect detection (`detectDialect`), DSN redaction
+  (`safeErr`), and `PRAGMA foreign_keys` enforcement; a live Postgres integration
+  test gated behind an env var (needs a server/container).
+- **Supply chain** (`0001`, `0012`) — run `govulncheck` in CI and keep the two
+  drivers (`modernc.org/sqlite`, `pgx/v5`) current.
+
 ### Deferred past v0.1 (reopening = ADR)
 - Migrations (`gap` 9), auth/users (`gap` 10, hatch), admin/scaffold-gen (`gap` 15),
   agent CLI (`gap` 16, `0002`), i18n/jobs/mail (`gap` 17), tier-3 `{{render}}`
