@@ -28,6 +28,9 @@ func TestExampleRenders(t *testing.T) {
 	if !strings.Contains(body, `class="odd"`) || !strings.Contains(body, "1.") {
 		t.Errorf("home missing loop-func output:\n%s", body)
 	}
+	if !strings.Contains(body, "2 notes") {
+		t.Errorf("home missing pluralize output:\n%s", body)
+	}
 
 	rec = httptest.NewRecorder()
 	a.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/notes/1", nil))
@@ -37,6 +40,12 @@ func TestExampleRenders(t *testing.T) {
 	body = rec.Body.String()
 	if !strings.Contains(body, `name="note-id"`) || !strings.Contains(body, "/static/style.css") {
 		t.Errorf("note head did not extend the base (super):\n%s", body)
+	}
+
+	rec = httptest.NewRecorder()
+	a.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/notes/2", nil))
+	if body := rec.Body.String(); !strings.Contains(body, "<br>") {
+		t.Errorf("note body missing linebreaksbr output:\n%s", body)
 	}
 
 	rec = httptest.NewRecorder()

@@ -19,7 +19,7 @@ type Note struct {
 
 var notes = map[string]Note{
 	"1": {ID: "1", Title: "First note", Body: "Hello from the cozy-mug example."},
-	"2": {ID: "2", Title: "Second note", Body: "Frugal and server-rendered."},
+	"2": {ID: "2", Title: "Second note", Body: "Frugal and server-rendered.\nNo build step."},
 }
 
 // View models embed core.Globals so templates can build reverse URLs.

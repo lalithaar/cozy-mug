@@ -7,8 +7,9 @@
 //
 //	app.Must(app.Config{Assets: assets, Funcs: funcs.Funcs(), ...})
 //
-// Scope so far: loop metadata (counter, first, last, even, odd, cycle) and the
-// arithmetic html/template lacks (add, sub). Formatting helpers may follow.
+// Scope so far: loop metadata (counter, first, last, even, odd, cycle),
+// arithmetic (add, sub), and formatting (upper, lower, capitalize, truncatechars,
+// truncatewords, slugify, join, default, pluralize, comma, date, linebreaksbr).
 package funcs
 
 import (
@@ -21,14 +22,26 @@ import (
 // Funcs returns the library's template functions.
 func Funcs() template.FuncMap {
 	return template.FuncMap{
-		"add":     add,
-		"sub":     sub,
-		"counter": counter,
-		"first":   first,
-		"last":    last,
-		"even":    even,
-		"odd":     odd,
-		"cycle":   cycle,
+		"add":           add,
+		"sub":           sub,
+		"counter":       counter,
+		"first":         first,
+		"last":          last,
+		"even":          even,
+		"odd":           odd,
+		"cycle":         cycle,
+		"upper":         upper,
+		"lower":         lower,
+		"capitalize":    capitalize,
+		"truncatechars": truncatechars,
+		"truncatewords": truncatewords,
+		"slugify":       slugify,
+		"join":          join,
+		"default":       defaultVal,
+		"pluralize":     pluralize,
+		"comma":         comma,
+		"date":          date,
+		"linebreaksbr":  linebreaksbr,
 	}
 }
 

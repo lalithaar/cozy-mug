@@ -66,7 +66,11 @@ func TestCycle(t *testing.T) {
 
 func TestFuncsRegistered(t *testing.T) {
 	m := Funcs()
-	for _, name := range []string{"add", "sub", "counter", "first", "last", "even", "odd", "cycle"} {
+	for _, name := range []string{
+		"add", "sub", "counter", "first", "last", "even", "odd", "cycle",
+		"upper", "lower", "capitalize", "truncatechars", "truncatewords",
+		"slugify", "join", "default", "pluralize", "comma", "date", "linebreaksbr",
+	} {
 		if _, ok := m[name]; !ok {
 			t.Errorf("Funcs() missing %q", name)
 		}

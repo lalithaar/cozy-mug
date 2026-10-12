@@ -1,6 +1,7 @@
 {{define "title"}}Notes - cozy-mug{{end}}
 {{define "content"}}
 <h1>Notes</h1>
+<p>{{len .Notes}} {{pluralize (len .Notes) "note" "notes"}}</p>
 <ul>
 {{range $i, $n := .Notes}}
   <li class="{{cycle $i "odd" "even"}}">

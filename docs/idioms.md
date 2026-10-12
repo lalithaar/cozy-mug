@@ -35,9 +35,9 @@ func show(c *core.Context) core.Response {
 - `.URL` is `{{.URL "user" "id" .User.ID}}` (name/value pairs); it errors rather
   than emitting an empty link. (`0006`)
 
-## Loop helpers + arithmetic (`0011`)
-`html/template` has no arithmetic and no loop positions. Add the opt-in `funcs`
-package to the func map:
+## Template funcs (`0011`)
+`html/template` ships almost no helpers. Add the opt-in `funcs` package to the
+func map:
 
 ```go
 a := app.Must(app.Config{Assets: assets, Routes: handlers.Register, Funcs: funcs.Funcs()})
@@ -47,10 +47,16 @@ a := app.Must(app.Config{Assets: assets, Routes: handlers.Register, Funcs: funcs
 {{range $i, $n := .Notes}}
   <li class="{{cycle $i "odd" "even"}}">{{counter $i}}. {{$n.Title}}</li>
 {{end}}
+<p>{{len .Notes}} {{pluralize (len .Notes) "note" "notes"}}</p>
+<p class="body">{{linebreaksbr .Note.Body}}</p>
 ```
 
-- Available: `counter` (1-based), `first`, `last` (needs the collection),
-  `even`/`odd`, `cycle`, `add`, `sub`. (`0011`)
+- Loop/arith: `counter` (1-based), `first`, `last` (needs the collection),
+  `even`/`odd`, `cycle`, `add`, `sub`.
+- Format: `upper`, `lower`, `capitalize`, `truncatechars`, `truncatewords`,
+  `slugify`, `join`, `default`, `pluralize`, `comma`, `date`, `linebreaksbr`.
+- Pipelines put the value last: `{{.Body | truncatechars 40}}`,
+  `{{.Created | date "Jan 2, 2006"}}`, `{{.Name | default "anon"}}`. (`0011`)
 
 ## Add to a base region — `super` (`0011`)
 `{{block}}` **replaces** wholesale; there is no `super`. Recover "parent + my

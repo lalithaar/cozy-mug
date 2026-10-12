@@ -3,7 +3,7 @@
 {{define "content"}}
 <article>
   <h1>{{.Note.Title}}</h1>
-  {{template "note-body" .Note}}
+  <p class="body">{{linebreaksbr .Note.Body}}</p>
   <p><a href="{{.URL "home"}}">Back</a></p>
 </article>
 {{end}}
