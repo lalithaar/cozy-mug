@@ -70,8 +70,8 @@ Operational rules. Every entry uses this shape:
 - Status: firm
 
 ### Just enough styling to be functional
-- Opinion: The default UI gives the minimum for a usable, accessible page without touching CSS. A dev never *needs* it for the app to work — adopting it (and choosing to keep/theme a style) is a maintenance commitment they opt into, not an obligation.
-- Because: Styling must never block shipping; the default carries you, and styling you choose to maintain is a dependency you take on *from the moment you choose it*. Spend exactly enough to clear the bar, no more.
+- Opinion: You never need to work on styling for the app to be usable. It isn't a dependency to think about until you want it to be one — styling is not a prerequisite for the app being usable.
+- Because: A usable, presentable app should cost zero styling work; the default carries you, and styling becomes your concern only the moment you choose to take it on. Spend just enough to clear that bar, no more.
 - Apply when: Building the default UI / component library (`ui`).
 - Deviate/ask: Any styling the core depends on, or that becomes mandatory, is a bug — flag it.
 - Status: firm
