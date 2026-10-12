@@ -9,6 +9,7 @@ not inline it here.
 - `docs/idioms.md` — how *we* implement handlers, templates, errors, data, layout.
 - `docs/decisions/` — one ADR per load-bearing decision.
 - `docs/roadmap.md` — release criteria; the source of truth for what a tag promises.
+- `docs/ideas.md` — captured-but-undecided ideas (not commitments).
 - `docs/gap.md` — stdlib-vs-Rails/Django gap map + per-area stance.
 - `docs/LOG.md` — append-only trail; read the last ~20 lines to catch recent drift.
 

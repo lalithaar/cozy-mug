@@ -33,4 +33,5 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 ### Deferred past v0.1 (reopening = ADR)
 - Migrations (`gap` 9), auth/users (`gap` 10, hatch), admin/scaffold-gen (`gap` 15),
   agent CLI (`gap` 16, `0002`), i18n/jobs/mail (`gap` 17), tier-3 `{{render}}`
-  boundary (`0007`), asset cache-busting (`gap` 11).
+  boundary (`0007`), asset cache-busting (`gap` 11), contrast-aware theming +
+  default themes (`docs/ideas.md`).
