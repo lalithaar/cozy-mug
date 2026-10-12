@@ -118,6 +118,38 @@ func (s *Store) noteByID(ctx context.Context, id int64) (Note, error) {
 - Never interpolate input as an identifier (`ORDER BY`, column name) — pick from a
   fixed set. The DSN is a secret: read it from the environment, never log it. (`0012`)
 
+## Sessions & CSRF (`0013`)
+A session is a sealed client cookie; wire it in `app.Config` (it sits between
+Errors and Views) and read it in handlers.
+
+```go
+sessions := core.Must(session.New(session.Options{
+	Key:    core.Must(session.Key("SESSION_KEY")), // base64, 32 bytes; read from env
+	Secure: !isDev,                                 // Secure cookie on HTTPS
+}))
+app.Must(app.Config{ /* … */ Session: sessions })
+```
+
+```go
+func login(c *core.Context) core.Response {
+	s := session.From(c) // *session.Session; c.Session() is the seam
+	if !valid(c.Form("password")) {
+		return c.Error(core.Unauthorized(nil))
+	}
+	s.Regenerate() // new id on a privilege change (session fixation)
+	s.Set("user_id", user.ID)
+	return core.Redirect(http.StatusSeeOther, "/")
+}
+```
+
+- Any form that posts includes `{{.CSRF}}`; the middleware rejects a missing or
+  wrong token with 403 *before* the handler runs. For JS, send `X-CSRF-Token`. (`0013`)
+- Safe methods (GET/HEAD/OPTIONS/TRACE) need no token; logout calls `s.Destroy()`. (`0013`)
+- Values are JSON-encoded into the cookie: keep them small and JSON-friendly. An
+  oversize session is dropped (never partially written). (`0013`)
+- The key is a secret: `session.Key("SESSION_KEY")` reads it without echoing it.
+  Dev may use an ephemeral key; prod must set one. (`0013`, secrets heuristic)
+
 ## Report an error (`0007`)
 Loaders return a structured error; the route maps it with `c.Error`. Wire
 `Logger` + `Errors` once, Logger outermost.

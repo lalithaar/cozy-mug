@@ -28,7 +28,7 @@ default — things Django/Rails had to engineer. **Do not rebuild these.**
 | 1 | Scaffolding & layout | nothing | `rails new` / `startproject` emit a working app + conventional dirs | **Fill** |
 | 2 | Routing | `ServeMux` (1.22 patterns) | named routes + reverse URL (`url_for`), grouping, per-route middleware | Fill small |
 | 3 | Middleware pipeline | `Handler` chaining | a standard set + ordering convention; request-scoped context | Fill |
-| 4 | Sessions & CSRF | `net/http` cookies, `crypto/*` | signed session store + CSRF tokens, wired by default | Fill |
+| 4 | Sessions & CSRF | `net/http` cookies, `crypto/*` | signed session store + CSRF tokens, wired by default | Fill — built (`0013`): sealed cookie, no server store |
 | 5 | Views | `html/template` | layouts/partials + loop metadata + arithmetic + formatting + `super` idiom done (opt-in `funcs`, `0011`); urlize/striptags/wordwrap still open | Fill |
 | 6 | Forms | `net/url` parsing | bind -> validate -> re-render-with-errors loop | Fill |
 | 7 | Global context | `context.Context` | "context processors": current user, flash, CSRF in every view | Fill |

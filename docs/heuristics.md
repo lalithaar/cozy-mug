@@ -117,3 +117,10 @@ Operational rules. Every entry uses this shape:
 - Apply when: Reading config, opening connections, writing any error or log line.
 - Deviate/ask: Never. Redact before the value can reach an error string.
 - Status: firm
+
+### Every unsafe request carries a CSRF token
+- Opinion: POST/PUT/PATCH/DELETE are rejected unless they echo the session's CSRF token (form field `csrf` or header `X-CSRF-Token`); safe methods are exempt.
+- Because: Cookies are ambient credentials, so any site can drive an authenticated write. A constant-time token check is the only reliable defense; `SameSite=Lax` is a helpful second layer, not a substitute (legacy browsers, top-level form POSTs). See `docs/decisions/0013`.
+- Apply when: Adding any route that changes state, or any form that posts.
+- Deviate/ask: Opt out only for a documented, token-free surface (e.g. a cross-origin API), and scope it narrowly.
+- Status: firm

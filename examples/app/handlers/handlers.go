@@ -4,12 +4,15 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/lalithaar/cozy-mug/core"
 	"github.com/lalithaar/cozy-mug/data"
 	"github.com/lalithaar/cozy-mug/router"
+	"github.com/lalithaar/cozy-mug/session"
 )
 
 // Note is a row in the notes table. db tags map columns to fields; the scanner
@@ -63,6 +66,7 @@ func (s *Store) Register(r *router.Router) {
 	notesGroup.Get("/{id}", s.showNote).As("note")
 
 	r.Get("/", s.index).As("home")
+	r.Post("/notes", s.createNote).As("notes.create")
 	r.Get("/boom", boom)
 	r.NotFound(notFound)
 }
@@ -72,6 +76,7 @@ func (s *Store) Register(r *router.Router) {
 type homeView struct {
 	core.Globals
 	Notes []Note
+	Flash string
 }
 
 type noteView struct {
@@ -84,7 +89,31 @@ func (s *Store) index(c *core.Context) core.Response {
 	if err != nil {
 		return c.Error(err)
 	}
-	return c.Render(http.StatusOK, "home", &homeView{Notes: list})
+	// A one-shot flash: read it, then clear it so it shows once.
+	flash := ""
+	if sess := session.From(c); sess != nil {
+		flash = sess.GetString("flash")
+		sess.Delete("flash")
+	}
+	return c.Render(http.StatusOK, "home", &homeView{Notes: list, Flash: flash})
+}
+
+// createNote handles the form POST. It is CSRF-protected by the session
+// middleware, which rejects the request before this runs if the token is wrong.
+func (s *Store) createNote(c *core.Context) core.Response {
+	title := strings.TrimSpace(c.Form("title"))
+	body := strings.TrimSpace(c.Form("body"))
+	if title == "" {
+		return c.Error(core.BadRequest(errors.New("title is required")))
+	}
+	if _, err := data.Exec(c.R.Context(), s.db,
+		`insert into notes (title, body) values (?, ?)`, title, body); err != nil {
+		return c.Error(err)
+	}
+	if sess := session.From(c); sess != nil {
+		sess.Set("flash", "Note added.")
+	}
+	return core.Redirect(http.StatusSeeOther, "/")
 }
 
 func (s *Store) showNote(c *core.Context) core.Response {

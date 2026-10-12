@@ -16,6 +16,7 @@ import (
 
 	"github.com/lalithaar/cozy-mug/core"
 	"github.com/lalithaar/cozy-mug/router"
+	"github.com/lalithaar/cozy-mug/session"
 	"github.com/lalithaar/cozy-mug/ui"
 	"github.com/lalithaar/cozy-mug/views"
 )
@@ -42,6 +43,11 @@ type Config struct {
 
 	// Funcs are the app's own template funcs (optional).
 	Funcs template.FuncMap
+
+	// Session enables cookie-backed sessions and CSRF protection (0013). nil
+	// disables both. Build it with session.New from a key read out of the
+	// environment. The example wires it here.
+	Session *session.Store
 }
 
 // App is an assembled application. It is an http.Handler, so tests and the agent
@@ -78,7 +84,11 @@ func New(cfg Config) (*App, error) {
 
 	r := router.New()
 	opts := core.Options{Dev: cfg.Dev, Logger: cfg.Logger}
-	r.Use(core.Logger(opts), core.Errors(opts), views.Middleware(set))
+	r.Use(core.Logger(opts), core.Errors(opts))
+	if cfg.Session != nil {
+		r.Use(cfg.Session.Middleware)
+	}
+	r.Use(views.Middleware(set))
 
 	if cfg.UI {
 		r.StaticFS("/static/ui/", ui.FS())

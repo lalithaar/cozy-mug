@@ -31,10 +31,10 @@ r.Get("/users/{id}", func(c *core.Context) core.Response {
 
 ## Status
 
-Early and **pre-release** — the API may change. The framework core and data layer
-are built, and apps are assembled by the `app` package; the remaining app-level
-pieces (sessions, forms, configuration) are still in progress. A roadmap ships in
-the repository.
+Early and **pre-release** — the API may change. The framework core, data layer,
+and sessions/CSRF are built, and apps are assembled by the `app` package; the
+remaining app-level pieces (forms, global view context) are still in progress. A
+roadmap ships in the repository.
 
 ## Layout
 
@@ -55,6 +55,7 @@ myapp/
 | `views` | Block layouts and partials over `html/template` |
 | `app` | Assembles the pieces (logger, errors, views, routes) |
 | `data` | `database/sql` helpers: SQLite or Postgres, no ORM |
+| `session` | Sealed-cookie sessions and CSRF protection, on by default |
 | `funcs` | Optional template helpers (loop metadata, formatting) |
 | `ui` | Optional component library (opt-in) |
 | `examples/app` | Canonical example app (uses `app` glue + 0009 layout) |
@@ -67,7 +68,9 @@ From a clone of this repository:
 go run ./examples/app      # http://localhost:8080 (SQLite; creates notes.db)
 ```
 
-Set `DATABASE_URL` to a `postgres://…` URL to run the same app on Postgres.
+Set `DATABASE_URL` to a `postgres://…` URL to run the same app on Postgres. Set
+`SESSION_KEY` (base64, 32 bytes — `openssl rand -base64 32`) for stable session
+cookies in production; in development an ephemeral key is generated for you.
 
 ## Non-goals
 

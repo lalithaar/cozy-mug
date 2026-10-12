@@ -3,6 +3,7 @@ package core
 import (
 	"errors"
 	"fmt"
+	"html/template"
 	"net/http"
 	"reflect"
 )
@@ -71,6 +72,24 @@ func (c *Context) URL(name string, params map[string]string) (string, error) {
 
 // Globals returns this request's template helpers.
 func (c *Context) Globals() Globals { return Globals{c: c} }
+
+// CSRF is a ready-made hidden input carrying this request's CSRF token, for use
+// inside a form. It is safe HTML; the token itself is escaped.
+//
+//	<form method="post"><{{.CSRF}} …</form>
+//
+// The field name is "csrf". With no session configured it renders nothing, so a
+// form still submits (and the CSRF middleware, if any, decides).
+func (g Globals) CSRF() template.HTML {
+	if g.c == nil {
+		return ""
+	}
+	tok := g.c.CSRF()
+	if tok == "" {
+		return ""
+	}
+	return template.HTML(`<input type="hidden" name="csrf" value="` + template.HTMLEscapeString(tok) + `">`)
+}
 
 var globalsType = reflect.TypeOf(Globals{})
 

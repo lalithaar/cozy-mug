@@ -1,6 +1,13 @@
 {{define "title"}}Notes - cozy-mug{{end}}
 {{define "content"}}
 <h1>Notes</h1>
+{{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+<form method="post" action="{{.URL "notes.create"}}">
+  {{.CSRF}}
+  <label>Title <input name="title" required></label>
+  <label>Body <textarea name="body" rows="3"></textarea></label>
+  <button type="submit">Add note</button>
+</form>
 <p>{{len .Notes}} {{pluralize (len .Notes) "note" "notes"}}</p>
 <ul>
 {{range $i, $n := .Notes}}
