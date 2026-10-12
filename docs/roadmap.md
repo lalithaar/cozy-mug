@@ -21,7 +21,7 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 
 - [ ] **Project layout / scaffolding** (`gap` 1) — decided (`0009`): conventional dirs, handlers/, views/, static/. TODO: canonical example app at `examples/app` (built; polish + getting-started).
 - [x] **App glue** — `app` package (`0009`): `app.New(Config)` wires Logger -> Errors -> Views -> Router, mounts static, exposes an `http.Handler`.
-- [ ] **Data access** (`gap` 8, `open`) — decide the idiom (`database/sql` + thin helpers + raw-SQL hatch; no ORM) and document it.
+- [x] **Data access** (`gap` 8, `0012`) — `data` package: `Open` infers the dialect (SQLite default / Postgres) and carries both drivers; `All`/`One`/`Exec`/`db.Tx`; `db:"col"` scanner; `One` -> `core.NotFound`; DB by closure DI; injection/secret guards. Example app wired to SQLite. (Getting-started write-up lands with *Identity & docs*.) Migrations stay deferred (`gap` 9).
 - [ ] **Global context / processors** (`gap` 7) — current user, flash, CSRF injected into every view.
 - [ ] **Forms** (`gap` 6) — bind -> validate -> re-render-with-errors.
 - [ ] **Sessions + CSRF** (`gap` 4) — signed cookie store + tokens, on by default.

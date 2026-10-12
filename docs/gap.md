@@ -32,7 +32,7 @@ default — things Django/Rails had to engineer. **Do not rebuild these.**
 | 5 | Views | `html/template` | layouts/partials + loop metadata + arithmetic + formatting + `super` idiom done (opt-in `funcs`, `0011`); urlize/striptags/wordwrap still open | Fill |
 | 6 | Forms | `net/url` parsing | bind -> validate -> re-render-with-errors loop | Fill |
 | 7 | Global context | `context.Context` | "context processors": current user, flash, CSRF in every view | Fill |
-| 8 | Data access | `database/sql` + driver | query ergonomics; **no ORM** (frugality) | Partial + hatch |
+| 8 | Data access | `database/sql` + driver | built (`0012`): `data` package — dialect-inferring `Open`, `All`/`One`/`Exec`/`db.Tx`, `db:"col"` scanner, closure DI; **no ORM** | Partial + hatch |
 | 9 | Migrations | none | schema versioning + runner | Fill small |
 | 10 | Auth / users | `crypto/*` | users, login/logout, hashing, permissions | Hatch |
 | 11 | Assets / static | `embed`, `FileServer` | serving conventions, cache-busting | Minimal + hatch |

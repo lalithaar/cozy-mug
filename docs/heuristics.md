@@ -103,3 +103,17 @@ Operational rules. Every entry uses this shape:
 - Apply when: Writing any public artifact — README, release announcement, docs site, user-visible error text.
 - Deviate/ask: Never in user-facing copy; process detail stays in `AGENTS.md`/`docs/`.
 - Status: firm
+
+### SQL values are parameters; SQL identifiers are code
+- Opinion: Every value goes to the driver as a bound parameter. A table/column name, an `ORDER BY`, or any other identifier comes from a fixed allow-list in code — never from the request.
+- Because: `database/sql` parameterizes *values* for free, but identifiers cannot be bound — a request-derived `ORDER BY` is still injection, and it is the exact hole an ORM quietly invites you to open. The data layer (`0012`) builds no SQL, so the only way to inject is to do it by hand.
+- Apply when: Writing any query; exposing sorting, filtering, or column selection.
+- Deviate/ask: Never interpolate request data into SQL text; if a feature needs dynamic identifiers, drive them from a fixed set.
+- Status: firm
+
+### Secrets are read from the environment and never echoed
+- Opinion: DSNs, keys, and tokens come from env vars; never log them, never put them in an error, never render them.
+- Because: A secret leaked into a log, error, or template is a breach with a long tail. `Fail loud in dev, quiet in prod` already hides error causes in prod; this extends the same discipline to configuration. `data.Open` scrubs the DSN and its password from driver errors.
+- Apply when: Reading config, opening connections, writing any error or log line.
+- Deviate/ask: Never. Redact before the value can reach an error string.
+- Status: firm

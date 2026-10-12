@@ -2,3 +2,11 @@
 *.exe
 *.test
 *.out
+
+# Local SQLite databases (never commit data)
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+

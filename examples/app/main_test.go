@@ -1,23 +1,43 @@
 package main
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/lalithaar/cozy-mug/app"
+	"github.com/lalithaar/cozy-mug/data"
 	"github.com/lalithaar/cozy-mug/examples/app/handlers"
 	"github.com/lalithaar/cozy-mug/funcs"
 )
 
-func TestExampleRenders(t *testing.T) {
-	a := app.Must(app.Config{
+func newApp(t *testing.T) http.Handler {
+	t.Helper()
+	ctx := context.Background()
+
+	db, err := data.Open(ctx, ":memory:")
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	t.Cleanup(func() { _ = db.Close() })
+
+	store := handlers.NewStore(db)
+	if err := store.EnsureSchema(ctx); err != nil {
+		t.Fatalf("schema: %v", err)
+	}
+
+	return app.Must(app.Config{
 		Assets: assets,
-		Routes: handlers.Register,
+		Routes: store.Register,
 		UI:     true,
 		Funcs:  funcs.Funcs(),
 	})
+}
+
+func TestExampleRenders(t *testing.T) {
+	a := newApp(t)
 
 	rec := httptest.NewRecorder()
 	a.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))

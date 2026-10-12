@@ -30,8 +30,9 @@ sessions except these files. Rules:
 
 ## Opinion ledger
 Firm opinions live in `docs/decisions/`. Project status:
-**early skeleton — handler contract, routing, templating, errors/logging, project
-layout, and UI architecture decided; do not guess `open` items.**
+**decided and built through the data layer; the remaining v0.1 work is the
+stateful half (global context, sessions/CSRF, forms) plus docs/UI. Nothing is
+undecided; deferred items live in `docs/roadmap.md`.**
 
 ### Firm
 - **Frugality is the top-level filter** — every addition (dep, line, export,
@@ -74,7 +75,16 @@ layout, and UI architecture decided; do not guess `open` items.**
   arithmetic now). Additive blocks use the partial-call idiom (factor a base
   region into a partial; a view calls it then adds). Engine stays `0006`. See
   `docs/decisions/0011`.
+- **Data access is `database/sql` + a thin `data` package; no ORM** — both drivers
+  carried (SQLite default via `modernc.org/sqlite`; Postgres via `pgx/v5` stdlib),
+  dialect inferred from the DSN; raw SQL pass-through, no placeholder rewriting
+  (`?` SQLite, `$1` Postgres); `All[T]`/`One[T]`/`Exec` + `db.Tx` generic over
+  `*DB`/`*Tx`; `db:"col"` scanner (exported fields only); `One` maps no-rows to
+  `core.NotFound`; DB by closure DI. `DB` wraps (never embeds) `*sql.DB` so there
+  is no raw `db.Exec` footgun. Injection/secrets guards baked in (see the two SQL
+  heuristics). Migrations deferred. See `docs/decisions/0012`.
 
 ### Open — do not guess, surface to the human
-Per-area gap map + stance: `docs/gap.md`. Items:
-- data / DB layer
+Per-area gap map + stance: `docs/gap.md`. Nothing is currently undecided. Deferred
+items (migrations, auth/users, admin/scaffold-gen, agent CLI, i18n/jobs/mail,
+tier-3 `{{render}}` boundary) live in `docs/roadmap.md`; reopening any is an ADR.

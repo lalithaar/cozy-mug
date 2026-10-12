@@ -2,6 +2,7 @@ package core
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"reflect"
 )
@@ -27,9 +28,13 @@ type Globals struct {
 	c *Context
 }
 
-// URL builds a named route's URL: href="{{.URL "user" "id" .User.ID}}". It is a
-// method so html/template can invoke it with arguments.
-func (g Globals) URL(name string, pairs ...string) (string, error) {
+// URL builds a reverse URL for use inside templates:
+//
+//	{{$.URL "note" "id" .ID}}
+//
+// Param values may be any type; they are stringified, so integer IDs work
+// without a conversion in the template. Param names must be strings.
+func (g Globals) URL(name string, pairs ...any) (string, error) {
 	if g.c == nil {
 		return "", errors.New("core: Globals used outside a request")
 	}
@@ -38,7 +43,11 @@ func (g Globals) URL(name string, pairs ...string) (string, error) {
 	}
 	params := make(map[string]string, len(pairs)/2)
 	for i := 0; i < len(pairs); i += 2 {
-		params[pairs[i]] = pairs[i+1]
+		key, ok := pairs[i].(string)
+		if !ok {
+			return "", fmt.Errorf("core: URL param name must be a string, got %T", pairs[i])
+		}
+		params[key] = fmt.Sprint(pairs[i+1])
 	}
 	return g.c.URL(name, params)
 }

@@ -21,7 +21,7 @@ r.Get("/users/{id}", func(c *core.Context) core.Response {
 
 - **Server-rendered HTML only.** Handlers return HTML, not JSON. No SPA glue, no
   REST ceremony.
-- **Frugal by default.** Standard library only; a database driver is the one
+- **Frugal by default.** Standard library only; database drivers are the one
   allowed dependency. Small enough to read in one sitting — no ORM, no template
   language, no build step, no dependency tree.
 - **Opinionated, not configurable.** A good default you can opt out of, instead
@@ -31,10 +31,10 @@ r.Get("/users/{id}", func(c *core.Context) core.Response {
 
 ## Status
 
-Early and **pre-release** — the API may change. The framework core is built, and
-apps are assembled by the `app` package; the remaining app-level pieces (data,
-sessions, forms, configuration) are still in progress. A roadmap ships in the
-repository.
+Early and **pre-release** — the API may change. The framework core and data layer
+are built, and apps are assembled by the `app` package; the remaining app-level
+pieces (sessions, forms, configuration) are still in progress. A roadmap ships in
+the repository.
 
 ## Layout
 
@@ -54,6 +54,8 @@ myapp/
 | `router` | Named routes, reverse URLs, groups, middleware |
 | `views` | Block layouts and partials over `html/template` |
 | `app` | Assembles the pieces (logger, errors, views, routes) |
+| `data` | `database/sql` helpers: SQLite or Postgres, no ORM |
+| `funcs` | Optional template helpers (loop metadata, formatting) |
 | `ui` | Optional component library (opt-in) |
 | `examples/app` | Canonical example app (uses `app` glue + 0009 layout) |
 
@@ -62,8 +64,10 @@ myapp/
 From a clone of this repository:
 
 ```
-go run ./examples/app      # http://localhost:8080
+go run ./examples/app      # http://localhost:8080 (SQLite; creates notes.db)
 ```
+
+Set `DATABASE_URL` to a `postgres://…` URL to run the same app on Postgres.
 
 ## Non-goals
 

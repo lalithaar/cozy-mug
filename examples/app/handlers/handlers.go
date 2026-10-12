@@ -3,23 +3,68 @@
 package handlers
 
 import (
-	"errors"
+	"context"
 	"net/http"
+	"strconv"
 
 	"github.com/lalithaar/cozy-mug/core"
+	"github.com/lalithaar/cozy-mug/data"
 	"github.com/lalithaar/cozy-mug/router"
 )
 
-// Note is an in-memory record; the example has no database yet.
+// Note is a row in the notes table. db tags map columns to fields; the scanner
+// matches by name case-insensitively when a tag is absent.
 type Note struct {
-	ID    string
-	Title string
-	Body  string
+	ID    int64  `db:"id"`
+	Title string `db:"title"`
+	Body  string `db:"body"`
 }
 
-var notes = map[string]Note{
-	"1": {ID: "1", Title: "First note", Body: "Hello from the cozy-mug example."},
-	"2": {ID: "2", Title: "Second note", Body: "Frugal and server-rendered.\nNo build step."},
+// Store holds the app's data access and its routes. Carrying one value and
+// handing its Register method to app.Config is how the example does dependency
+// injection: Register closes over the DB (0009).
+type Store struct {
+	db *data.DB
+}
+
+func NewStore(db *data.DB) *Store { return &Store{db: db} }
+
+// EnsureSchema creates the table if missing and seeds a couple of notes. An app
+// with migrations would run them here instead (migrations are deferred).
+func (s *Store) EnsureSchema(ctx context.Context) error {
+	if _, err := data.Exec(ctx, s.db, `create table if not exists notes (
+		id    integer primary key autoincrement,
+		title text not null,
+		body  text not null
+	)`); err != nil {
+		return err
+	}
+
+	n, err := data.One[int](ctx, s.db, `select count(*) from notes`)
+	if err != nil {
+		return err
+	}
+	if n > 0 {
+		return nil
+	}
+
+	_, err = data.Exec(ctx, s.db,
+		`insert into notes (title, body) values (?, ?), (?, ?)`,
+		"First note", "Hello from the cozy-mug example.",
+		"Second note", "Frugal and server-rendered.\nNo build step.",
+	)
+	return err
+}
+
+// Register wires the example's routes; pass store.Register as app.Config.Routes.
+func (s *Store) Register(r *router.Router) {
+	notesGroup := r.Group("/notes")
+	notesGroup.Use(withExampleHeader)
+	notesGroup.Get("/{id}", s.showNote).As("note")
+
+	r.Get("/", s.index).As("home")
+	r.Get("/boom", boom)
+	r.NotFound(notFound)
 }
 
 // View models embed core.Globals so templates can build reverse URLs.
@@ -34,27 +79,20 @@ type noteView struct {
 	Note Note
 }
 
-// Register wires the example's routes; pass it as app.Config.Routes.
-func Register(r *router.Router) {
-	notesGroup := r.Group("/notes")
-	notesGroup.Use(withExampleHeader)
-	notesGroup.Get("/{id}", showNote).As("note")
-
-	r.Get("/", index).As("home")
-	r.Get("/boom", boom)
-	r.NotFound(notFound)
-}
-
-func index(c *core.Context) core.Response {
-	list := make([]Note, 0, len(notes))
-	for _, n := range notes {
-		list = append(list, n)
+func (s *Store) index(c *core.Context) core.Response {
+	list, err := s.allNotes(c.R.Context())
+	if err != nil {
+		return c.Error(err)
 	}
 	return c.Render(http.StatusOK, "home", &homeView{Notes: list})
 }
 
-func showNote(c *core.Context) core.Response {
-	n, err := loadNote(c.Param("id"))
+func (s *Store) showNote(c *core.Context) core.Response {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		return c.Error(core.NotFound(err))
+	}
+	n, err := s.noteByID(c.R.Context(), id)
 	if err != nil {
 		return c.Error(err)
 	}
@@ -65,14 +103,15 @@ func boom(*core.Context) core.Response { panic("example panic") }
 
 func notFound(c *core.Context) core.Response { return c.Error(core.NotFound(nil)) }
 
-// loadNote is a tier-2 loader: plain Go returning a status-aware error; it never
-// writes a response and never panics (0007).
-func loadNote(id string) (Note, error) {
-	n, ok := notes[id]
-	if !ok {
-		return Note{}, core.NotFound(errors.New("note " + id + " not found"))
-	}
-	return n, nil
+// allNotes and noteByID are loaders: plain Go returning status-aware errors,
+// never writing a response and never panicking (0007).
+func (s *Store) allNotes(ctx context.Context) ([]Note, error) {
+	return data.All[Note](ctx, s.db, `select id, title, body from notes order by id`)
+}
+
+func (s *Store) noteByID(ctx context.Context, id int64) (Note, error) {
+	// One maps sql.ErrNoRows to core.NotFound, so a missing id renders the 404.
+	return data.One[Note](ctx, s.db, `select id, title, body from notes where id = ?`, id)
 }
 
 // withExampleHeader tags the /notes group's responses; it shows group middleware.
