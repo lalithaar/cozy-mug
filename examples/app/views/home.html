@@ -1,7 +1,7 @@
 {{define "title"}}Notes - cozy-mug{{end}}
 {{define "content"}}
 <h1>Notes</h1>
-{{with .Flash}}<p class="flash">{{.}}</p>{{end}}
+{{with .Values.flash}}<p class="flash">{{.}}</p>{{end}}
 <form method="post" action="{{.URL "notes.create"}}">
   {{.CSRF}}
   <label>Title <input name="title" required></label>

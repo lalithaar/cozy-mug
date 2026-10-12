@@ -32,8 +32,8 @@ r.Get("/users/{id}", func(c *core.Context) core.Response {
 ## Status
 
 Early and **pre-release** — the API may change. The framework core, data layer,
-and sessions/CSRF are built, and apps are assembled by the `app` package; the
-remaining app-level pieces (forms, global view context) are still in progress. A
+sessions/CSRF, and global view context are built, and apps are assembled by the
+`app` package; the remaining app-level pieces (forms) are still in progress. A
 roadmap ships in the repository.
 
 ## Layout
@@ -50,10 +50,10 @@ myapp/
 
 | Package | What it does |
 | --- | --- |
-| `core` | Request context, handlers, responses, errors, logging |
+| `core` | Request context, handlers, responses, errors, logging, global values |
 | `router` | Named routes, reverse URLs, groups, middleware |
 | `views` | Block layouts and partials over `html/template` |
-| `app` | Assembles the pieces (logger, errors, views, routes) |
+| `app` | Assembles the pieces (logger, errors, sessions, processors, views, routes) |
 | `data` | `database/sql` helpers: SQLite or Postgres, no ORM |
 | `session` | Server-side sessions (revocable) and CSRF protection, on by default |
 | `funcs` | Optional template helpers (loop metadata, formatting) |

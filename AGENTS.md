@@ -30,9 +30,9 @@ sessions except these files. Rules:
 
 ## Opinion ledger
 Firm opinions live in `docs/decisions/`. Project status:
-**decided and built through sessions/CSRF; the remaining v0.1 work is the rest of
-the stateful half (global context / processors, forms) plus settings, docs, and
-UI. Nothing is undecided; deferred items live in `docs/roadmap.md`.**
+**decided and built through sessions/CSRF and global context / processors; the
+remaining v0.1 work is forms, plus settings, docs, and UI. Nothing is undecided;
+deferred items live in `docs/roadmap.md`.**
 
 ### Firm
 - **Frugality is the top-level filter** — every addition (dep, line, export,
@@ -92,6 +92,12 @@ UI. Nothing is undecided; deferred items live in `docs/roadmap.md`.**
   escape hatch. Wired by `app.Config.Session` between Errors and Views; access via
   `c.Session()` / `session.From(c)`; `{{.CSRF}}` renders the field. See
   `docs/decisions/0013`.
+- **Global context is a request-scoped value bag + processors** — `c.Set` /
+  `c.Global` fill a per-request map exposed to every view as `{{.Values.name}}`;
+  `app.Config.Processors` (`core.Processor`, `func(*Context) map[string]any`) run
+  after sessions and before views, so a processor may read the session (flash) and
+  its value reaches the template. CSRF stays first-class `{{.CSRF}}`. See
+  `docs/decisions/0014`.
 
 ### Open — do not guess, surface to the human
 Per-area gap map + stance: `docs/gap.md`. Nothing is currently undecided. Deferred

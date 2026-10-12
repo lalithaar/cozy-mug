@@ -152,6 +152,38 @@ func login(c *core.Context) core.Response {
   `session.Key("SESSION_KEY")` reads it without echoing it. (`0013`, secrets heuristic)
 - `Sweep(ctx)` drops expired rows; expired rows are ignored on read regardless. (`0013`)
 
+## Global context (`0014`)
+Values that every layout needs — current user, flash, a site title — go in the
+request's value bag, not threaded through each view model. A **processor** fills
+it before the view runs; templates read it as `{{.Values.name}}`.
+
+```go
+// app.Config
+Processors: []core.Processor{
+	func(c *core.Context) map[string]any {
+		s := session.From(c)
+		if s == nil || s.GetString("flash") == "" {
+			return nil
+		}
+		msg := s.GetString("flash")
+		s.Delete("flash") // consumed once; the session middleware persists the delete
+		return map[string]any{"flash": msg}
+	},
+},
+```
+```html
+{{with .Values.flash}}<p class="flash">{{.}}</p>{{end}}
+```
+
+- A handler can also set one: `c.Set("title", t)`; read it back with
+  `c.Global("title")`. (`0014`)
+- Processors run **after sessions, before views** — so they may read the session,
+  and their values are present when the view renders. (`0014`)
+- Keep the bag for display state; do not stash secrets or trust it as a permission
+  check. CSRF stays `{{.CSRF}}`, not a bag value. (`0014`, `0013`)
+- A processor returns `nil` when it has nothing; the view's `{{if}}`/`{{with}}`
+  handles absence. Later processors win a key collision. (`0014`)
+
 ## Report an error (`0007`)
 Loaders return a structured error; the route maps it with `c.Error`. Wire
 `Logger` + `Errors` once, Logger outermost.

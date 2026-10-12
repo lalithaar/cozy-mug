@@ -49,12 +49,13 @@ func main() {
 	}
 
 	a := app.Must(app.Config{
-		Assets:  assets,                  // views/ (+ static/ at /static/)
-		Routes:  store.Register,          // func(*router.Router), closes over the DB
-		Dev:     os.Getenv("DEV") != "0", // non-production unless DEV=0
-		UI:      true,                    // opt into the (scaffold) ui library
-		Funcs:   funcs.Funcs(),           // opt into the loop/arithmetic template funcs
-		Session: sessions,                // sessions + CSRF, on by default
+		Assets:     assets,                  // views/ (+ static/ at /static/)
+		Routes:     store.Register,          // func(*router.Router), closes over the DB
+		Dev:        os.Getenv("DEV") != "0", // non-production unless DEV=0
+		UI:         true,                    // opt into the (scaffold) ui library
+		Funcs:      funcs.Funcs(),           // opt into the loop/arithmetic template funcs
+		Session:    sessions,                // sessions + CSRF, on by default
+		Processors: handlers.Processors(),   // flash (and future current-user) in every view
 	})
 	log.Fatal(a.ListenAndServe(":8080"))
 }

@@ -31,7 +31,7 @@ default — things Django/Rails had to engineer. **Do not rebuild these.**
 | 4 | Sessions & CSRF | `net/http` cookies, `crypto/*` | signed session store + CSRF tokens, wired by default | Fill — built (`0013`): server-side DB store by default, sealed-cookie escape hatch |
 | 5 | Views | `html/template` | layouts/partials + loop metadata + arithmetic + formatting + `super` idiom done (opt-in `funcs`, `0011`); urlize/striptags/wordwrap still open | Fill |
 | 6 | Forms | `net/url` parsing | bind -> validate -> re-render-with-errors loop | Fill |
-| 7 | Global context | `context.Context` | "context processors": current user, flash, CSRF in every view | Fill |
+| 7 | Global context | `context.Context` | built (`0014`): request-scoped values (`c.Set` / `.Values.name`) + `app.Config.Processors`; CSRF stays `{{.CSRF}}` | Fill |
 | 8 | Data access | `database/sql` + driver | built (`0012`): `data` package — dialect-inferring `Open`, `All`/`One`/`Exec`/`db.Tx`, `db:"col"` scanner, closure DI; **no ORM** | Partial + hatch |
 | 9 | Migrations | none | schema versioning + runner | Fill small |
 | 10 | Auth / users | `crypto/*` | users, login/logout, hashing, permissions | Hatch |

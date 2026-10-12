@@ -1,9 +1,9 @@
 // Package app assembles a cozy-mug application (ADR 0009).
 //
 // It wires the pieces in the correct order — Logger (outermost) -> Errors ->
-// Views -> Router — mounts static assets, and exposes the result as an
-// http.Handler. Apps never hand-wire middleware order; the ordering knowledge
-// lives here.
+// Session -> Processors -> Views -> Router — mounts static assets, and exposes
+// the result as an http.Handler. Apps never hand-wire middleware order; the
+// ordering knowledge lives here.
 package app
 
 import (
@@ -48,6 +48,11 @@ type Config struct {
 	// The default is session.NewStore(db) (server-side, revocable); session.New
 	// seals sessions into the cookie instead. The example wires it here.
 	Session *session.Store
+
+	// Processors compute request-scoped values (current user, flash) exposed to
+	// every view as {{.Values.name}} (gap 7). They run after sessions and before
+	// views, so a processor may read the session. Optional.
+	Processors []core.Processor
 }
 
 // App is an assembled application. It is an http.Handler, so tests and the agent
@@ -87,6 +92,9 @@ func New(cfg Config) (*App, error) {
 	r.Use(core.Logger(opts), core.Errors(opts))
 	if cfg.Session != nil {
 		r.Use(cfg.Session.Middleware)
+	}
+	if len(cfg.Processors) > 0 {
+		r.Use(core.Processors(cfg.Processors...))
 	}
 	r.Use(views.Middleware(set))
 

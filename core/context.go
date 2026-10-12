@@ -25,6 +25,11 @@ type Renderer interface {
 // view struct and pass a *pointer* to Context.Render; the framework fills it.
 // URL returns an error, which html/template surfaces as a render error
 // (fail-loud) rather than a silently empty link.
+//
+// Values carries the request-scoped data set by processors and handlers, so a
+// view reads it without the app threading it into every view model:
+//
+//	{{with .Values.flash}}<p class="flash">{{.}}</p>{{end}}
 type Globals struct {
 	c *Context
 }
@@ -59,6 +64,29 @@ type Context struct {
 	R      *http.Request
 	Router Reverser
 	Views  Renderer
+	values map[string]any
+}
+
+// Set stores a request-scoped value for templates (see Globals.Values). A
+// processor typically calls it; handlers may too. A later write wins.
+func (c *Context) Set(name string, value any) {
+	if c.values == nil {
+		c.values = map[string]any{}
+	}
+	c.values[name] = value
+}
+
+// Global returns a value set with Set, or nil. It is the handler-side read of
+// what templates see as .Values; use it when a handler needs the same value.
+func (c *Context) Global(name string) any { return c.values[name] }
+
+// Values returns the request-scoped values set by processors and handlers, for
+// use inside templates: {{.Values.user}}. It is nil when nothing was set.
+func (g Globals) Values() map[string]any {
+	if g.c == nil {
+		return nil
+	}
+	return g.c.values
 }
 
 // URL builds the URL for a named route, e.g.

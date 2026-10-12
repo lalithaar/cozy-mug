@@ -76,7 +76,6 @@ func (s *Store) Register(r *router.Router) {
 type homeView struct {
 	core.Globals
 	Notes []Note
-	Flash string
 }
 
 type noteView struct {
@@ -85,17 +84,12 @@ type noteView struct {
 }
 
 func (s *Store) index(c *core.Context) core.Response {
-	list, err := s.allNotes(c.R.Context())
+	notes, err := s.allNotes(c.R.Context())
 	if err != nil {
 		return c.Error(err)
 	}
-	// A one-shot flash: read it, then clear it so it shows once.
-	flash := ""
-	if sess := session.From(c); sess != nil {
-		flash = sess.GetString("flash")
-		sess.Delete("flash")
-	}
-	return c.Render(http.StatusOK, "home", &homeView{Notes: list, Flash: flash})
+	// The flash is in .Values, put there by the flash processor (gap 7).
+	return c.Render(http.StatusOK, "home", &homeView{Notes: notes})
 }
 
 // createNote handles the form POST. It is CSRF-protected by the session
@@ -131,6 +125,26 @@ func (s *Store) showNote(c *core.Context) core.Response {
 func boom(*core.Context) core.Response { panic("example panic") }
 
 func notFound(c *core.Context) core.Response { return c.Error(core.NotFound(nil)) }
+
+// Processors are the app's global context processors (gap 7): values every view
+// sees as {{.Values.name}}. Hand them to app.Config.
+func Processors() []core.Processor { return []core.Processor{flash} }
+
+// flash moves a one-shot flash message out of the session and into the view
+// values, deleting it so it renders once. It runs after sessions, so the delete
+// is persisted by the session middleware.
+func flash(c *core.Context) map[string]any {
+	s := session.From(c)
+	if s == nil {
+		return nil
+	}
+	msg := s.GetString("flash")
+	if msg == "" {
+		return nil
+	}
+	s.Delete("flash")
+	return map[string]any{"flash": msg}
+}
 
 // allNotes and noteByID are loaders: plain Go returning status-aware errors,
 // never writing a response and never panicking (0007).

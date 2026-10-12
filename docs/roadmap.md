@@ -20,9 +20,9 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 ## v0.1.0 — first usable release
 
 - [ ] **Project layout / scaffolding** (`gap` 1) — decided (`0009`): conventional dirs, handlers/, views/, static/. TODO: canonical example app at `examples/app` (built; polish + getting-started).
-- [x] **App glue** — `app` package (`0009`): `app.New(Config)` wires Logger -> Errors -> Views -> Router, mounts static, exposes an `http.Handler`.
+- [x] **App glue** — `app` package (`0009`): `app.New(Config)` wires Logger -> Errors -> Session -> Processors -> Views -> Router, mounts static, exposes an `http.Handler`.
 - [x] **Data access** (`gap` 8, `0012`) — `data` package: `Open` infers the dialect (SQLite default / Postgres) and carries both drivers; `All`/`One`/`Exec`/`db.Tx`; `db:"col"` scanner; `One` -> `core.NotFound`; DB by closure DI; injection/secret guards. Example app wired to SQLite. (Getting-started write-up lands with *Identity & docs*.) Migrations stay deferred (`gap` 9).
-- [ ] **Global context / processors** (`gap` 7) — current user, flash, CSRF injected into every view.
+- [x] **Global context / processors** (`gap` 7, `0014`) — request-scoped values (`c.Set` / `{{.Values.name}}`) plus `app.Config.Processors` (`core.Processor`), run after sessions and before views; CSRF stays `{{.CSRF}}`. Example uses a processor for flash. (`0014` proposed — pending human sign-off.)
 - [ ] **Forms** (`gap` 6) — bind -> validate -> re-render-with-errors.
 - [x] **Sessions + CSRF** (`gap` 4, `0013`) — server-side sessions by default (`session.NewStore(db)`, framework-owned `sessions` table, opaque id cookie, revocable, no global key) with a sealed-cookie escape hatch (`session.New`); CSRF tokens required on unsafe methods; on by default via `app.Config.Session`; `c.Session()` / `session.From(c)`, `{{.CSRF}}`. (`0013` drafted as proposed — pending human sign-off.)
 - [ ] **Settings** (`gap` 13) — minimal env-based config convention.

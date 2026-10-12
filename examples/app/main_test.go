@@ -40,11 +40,12 @@ func newApp(t *testing.T) http.Handler {
 	}
 
 	return app.Must(app.Config{
-		Assets:  assets,
-		Routes:  store.Register,
-		UI:      true,
-		Funcs:   funcs.Funcs(),
-		Session: sessions,
+		Assets:     assets,
+		Routes:     store.Register,
+		UI:         true,
+		Funcs:      funcs.Funcs(),
+		Session:    sessions,
+		Processors: handlers.Processors(),
 	})
 }
 
