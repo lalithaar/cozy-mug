@@ -12,6 +12,11 @@ const (
 	DefaultLoginURL   = "/login"
 )
 
+// ErrInvalidPassword is returned by ChangePassword when the current password
+// does not match. It is deliberately generic: handlers should avoid revealing
+// why authentication failed (errors 0007).
+var ErrInvalidPassword = errors.New("auth: invalid password")
+
 // Options tunes the session key used by auth. The zero value is usable.
 type Options struct {
 	// SessionKey overrides the reserved session key. Empty uses DefaultSessionKey.
