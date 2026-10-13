@@ -1,0 +1,15 @@
+{{define "base"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{block "title" .}}cozy-mug example{{end}}</title>
+{{block "head" .}}{{template "layout-head" .}}{{end}}
+</head>
+<body>
+<header><a href="{{.URL "home"}}">cozy-mug notes</a></header>
+<main>{{block "content" .}}{{end}}</main>
+{{block "scripts" .}}{{end}}
+</body>
+</html>
+{{end}}

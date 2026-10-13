@@ -23,7 +23,7 @@ r.Get("/users/{id}", func(c *core.Context) core.Response {
   REST ceremony.
 - **The essentials are the product, not a saving.** Standard library first, the
   database drivers the one dependency, no build step — *and* data access,
-  sessions, forms, errors, and secure defaults included. Their absence is a wall,
+  sessions, forms, settings, errors, and secure defaults included. Their absence is a wall,
   not a frugality.
 - **Opinionated, not configurable.** A good default you can opt out of, instead
   of a knob you have to set.
@@ -66,9 +66,9 @@ raw parameterized SQL stays as the escape hatch.
 
 Early and **pre-release** — the API may change. Built: the core, the `app` glue,
 the model-first data layer, server-side sessions and CSRF, global view context,
-and the optional template helpers, server-side forms. Deferred: a generated
-migrations CLI, settings, the UI component set, and auth. A roadmap ships in the
-repository.
+the optional template helpers, server-side forms, and the `cozy` CLI with project
+scaffolding and migrations. Deferred: settings, the UI component set, and auth.
+A roadmap ships in the repository.
 
 ## Layout
 
@@ -92,6 +92,8 @@ myapp/
 | `session` | Server-side sessions (revocable) and CSRF protection, on by default |
 | `funcs` | Optional template helpers (loop metadata, formatting) |
 | `ui` | Optional component library (opt-in) |
+| `settings` | Minimal environment-based config convention |
+| `cmd/cozy` | `cozy` CLI: scaffold apps (`cozy new`), run migrations (`cozy migrate`) |
 | `examples/app` | Canonical example app (uses `app` glue + 0009 layout) |
 
 ## Try it

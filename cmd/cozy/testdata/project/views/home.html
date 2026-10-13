@@ -1,0 +1,28 @@
+{{define "title"}}Notes - cozy-mug{{end}}
+{{define "content"}}
+<h1>Notes</h1>
+{{with .Values.flash}}<p class="flash">{{.}}</p>{{end}}
+<form method="post" action="{{.URL "notes.create"}}">
+  {{.CSRF}}
+  <div class="field">
+    <label for="title">Title</label>
+    <input id="title" name="title" type="text" value="{{with .Form}}{{.Raw "title"}}{{end}}">
+    {{with .Form}}{{range .Errors "title"}}<p class="error">{{.}}</p>{{end}}{{end}}
+  </div>
+  <div class="field">
+    <label for="body">Body</label>
+    <textarea id="body" name="body" rows="3">{{with .Form}}{{.Raw "body"}}{{end}}</textarea>
+  </div>
+  {{with .Form}}{{range .Errors ""}}<p class="error">{{.}}</p>{{end}}{{end}}
+  <button type="submit">Add note</button>
+</form>
+<p>{{len .Notes}} {{pluralize (len .Notes) "note" "notes"}}</p>
+<ul>
+{{range $i, $n := .Notes}}
+  <li class="{{cycle $i "odd" "even"}}">
+    {{counter $i}}. <a href="{{$.URL "note" "id" $n.ID}}">{{$n.Title}}</a>
+    {{template "note-body" $n}}
+  </li>
+{{end}}
+</ul>
+{{end}}
