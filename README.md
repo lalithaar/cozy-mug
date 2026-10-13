@@ -3,8 +3,8 @@
 A small, opinionated framework for building **server-rendered HTML apps in Go**.
 
 Go gives you excellent primitives and decides nothing. So every project
-re-assembles the same wiring by hand: routing, layouts, forms, sessions, an error
-page, a request log. **cozy-mug decides that 90% for you** — the
+re-assembles the same wiring by hand: routing, layouts, data access, sessions,
+an error page, a request log. **cozy-mug decides that 90% for you** — the
 batteries-included feel of Rails or Django, without their weight.
 
 ```go
@@ -21,20 +21,54 @@ r.Get("/users/{id}", func(c *core.Context) core.Response {
 
 - **Server-rendered HTML only.** Handlers return HTML, not JSON. No SPA glue, no
   REST ceremony.
-- **Frugal by default.** Standard library only; database drivers are the one
-  allowed dependency. Small enough to read in one sitting — no ORM, no template
-  language, no build step, no dependency tree.
+- **The essentials are the product, not a saving.** Standard library first, the
+  database drivers the one dependency, no build step — *and* data access,
+  sessions, forms, errors, and secure defaults included. Their absence is a wall,
+  not a frugality.
 - **Opinionated, not configurable.** A good default you can opt out of, instead
   of a knob you have to set.
-- **Decides the 90%.** Routing, layouts and partials, forms, sessions, errors,
-  logging, configuration, and a tiny opt-out UI.
+- **Decides the 90%.** Routing, layouts and partials, a model-first data layer,
+  sessions and CSRF, errors, logging, global context, and a tiny opt-out UI.
+
+## Data access
+
+Your struct is the schema. Tag it once, and the framework derives the table,
+columns, primary key, timestamps, optimistic-lock version, and relationships:
+
+```go
+type Post struct {
+	data.Model `db:"posts"`
+	ID        int64     `db:"id auto"`
+	Title     string    `db:"title"`
+	AuthorID  int64     `db:"author_id index"`
+	Author    *User     `db:"ref:author_id"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+	Version   int64     `db:"version"`
+}
+```
+
+```go
+posts, err := db.Table[Post]().
+	With(P.Author).                    // relations load in batches - no N+1
+	Where(P.AuthorID.Eq(uid)).
+	OrderBy(P.CreatedAt.Desc()).
+	Limit(10).
+	All(ctx)
+```
+
+Columns are typed tokens, so a mistyped column is a compile error. Mutations are
+whole-row with an optimistic lock — a stale write returns `409 Conflict` instead
+of clobbering someone else's edit. The same code runs on SQLite or Postgres, and
+raw parameterized SQL stays as the escape hatch.
 
 ## Status
 
-Early and **pre-release** — the API may change. The framework core, data layer,
-sessions/CSRF, and global view context are built, and apps are assembled by the
-`app` package; the remaining app-level pieces (forms) are still in progress. A
-roadmap ships in the repository.
+Early and **pre-release** — the API may change. Built: the core, the `app` glue,
+the model-first data layer, server-side sessions and CSRF, global view context,
+and the optional template helpers. In progress: forms. Deferred: a generated
+migrations CLI, settings, the UI component set, and auth. A roadmap ships in the
+repository.
 
 ## Layout
 
@@ -54,7 +88,7 @@ myapp/
 | `router` | Named routes, reverse URLs, groups, middleware |
 | `views` | Block layouts and partials over `html/template` |
 | `app` | Assembles the pieces (logger, errors, sessions, processors, views, routes) |
-| `data` | `database/sql` helpers: SQLite or Postgres, no ORM |
+| `data` | Model-first data layer over `database/sql`: SQLite or Postgres |
 | `session` | Server-side sessions (revocable) and CSRF protection, on by default |
 | `funcs` | Optional template helpers (loop metadata, formatting) |
 | `ui` | Optional component library (opt-in) |
@@ -77,4 +111,6 @@ without server state, use the sealed-cookie store (`session.New`) and set
 
 - Not an API backend for JavaScript SPA frameworks.
 - Not a REST or JSON framework.
-- No ORM, no third-party template engine, no asset build step.
+- Not a general-purpose ORM — data access is model-first but bounded (a fixed
+  operator set, no lazy loading), with raw SQL as the escape hatch.
+- No third-party template engine, no asset build step.
