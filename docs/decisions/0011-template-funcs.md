@@ -1,7 +1,7 @@
 # 0011 — Template func library is an opt-in package; `super` via partial
 
 - Status: firm
-- Date: 2026-10-12
+- Date: 2026-10-12 (updated 2026-10-13)
 - Supersedes: none
 
 ## Opinion
@@ -9,9 +9,11 @@ Close the two real gaps in `html/template` (`docs/gap.md`) without changing the
 engine (`0006`):
 
 1. **Helpers live in an opt-in package, not in `views`.** A new `funcs` package
-   ships small template functions the stdlib lacks — first the *loop metadata* and
+   ships small template functions the stdlib lacks — loop metadata and
    arithmetic (`counter`, `first`, `last`, `even`, `odd`, `cycle`, `add`, `sub`),
-   later formatting. Apps add it with `app.Config.Funcs` / `views.New(fsys, funcs)`.
+   plus formatting (`upper`, `lower`, `capitalize`, `truncatechars`,
+   `truncatewords`, `slugify`, `join`, `default`, `pluralize`, `comma`, `date`,
+   `linebreaksbr`). Apps add it with `app.Config.Funcs` / `views.New(fsys, funcs)`.
 2. **`super` / additive blocks are an idiom, not a feature.** A base layout
    factors each overridable region into a named partial and exposes it through a
    `{{block}}` whose default *calls that partial*; a view that wants "parent + my

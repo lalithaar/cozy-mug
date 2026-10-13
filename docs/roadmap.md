@@ -27,7 +27,7 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 - [x] **Sessions + CSRF** (`gap` 4, `0013`) — server-side sessions by default (`session.NewStore(db)`, framework-owned `sessions` table, opaque id cookie, revocable, no global key) with a sealed-cookie escape hatch (`session.New`); CSRF tokens required on unsafe methods; on by default via `app.Config.Session`; `c.Session()` / `session.From(c)`, `{{.CSRF}}`. (`0013` drafted as proposed — pending human sign-off.)
 - [ ] **Settings** (`gap` 13) — minimal env-based config convention.
 - [ ] **Default UI** (`0003`, `0010`) — architecture decided + `ui` scaffolded; component set and styling TBD.
-- [ ] **Template helpers** (`0006`, `0011`) — `funcs` package (opt-in): loop metadata + arithmetic + formatting (text/join/default/pluralize/comma/date/linebreaksbr) done; `super`/nesting idiom documented.
+- [x] **Template helpers** (`0006`, `0011`) — `funcs` package (opt-in): loop metadata + arithmetic + formatting (text/join/default/pluralize/comma/date/linebreaksbr) done; `super`/nesting idiom documented.
 - [ ] **Identity & docs** — module path now `github.com/lalithaar/cozy-mug` (`0009`); TODO: README + getting-started, and a tag with the new path.
 - [ ] **Testing convention** (`gap` 14) — documented `httptest` / test-client seam (agent CLI may slip).
 
