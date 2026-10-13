@@ -31,3 +31,16 @@ short; record the reason, not just the wish.
     external tool.
 - **Links:** https://github.com/comfort-mode-toolkit/cm-colors/,
   https://cm-colors.readthedocs.io/
+
+---
+
+## Timezone handling default
+
+- **Status:** idea (undecided). Revisit once settings/auth landed.
+- **Idea:** Store timestamps in UTC by default (`data` already writes `.UTC()`), optionally expose `TZ`/`APP_TIMEZONE` in `settings.Config`, and provide a small formatting helper for local display instead of making every app repeat `time.LoadLocation`. Consider `TZ` env + `time.Now().In(loc)` in handlers/templates via `funcs` date helpers.
+- **Why:** Django's `USE_TZ`/`TIME_ZONE` is a frequent source of subtle bugs; picking UTC-in/storage and explicit display formatting removes that class. Fits the "convention over configuration" rule without forcing a knob.
+- **Open questions:**
+  - Is a single app-level `TZ` enough, or do per-user timezones need data (auth/users) first?
+  - Should formatting live in `funcs` (`date` helper) or in templates via a location-aware formatter?
+  - Default (`UTC`) vs server-local when unset.
+- **Links:** nearest analogue in docs: `settings` package and `funcs/format.go`.
