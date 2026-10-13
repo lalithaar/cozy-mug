@@ -173,16 +173,43 @@ func migrateNew(args []string) error {
 	if err != nil {
 		return err
 	}
-	if len(rest) == 0 {
-		return fmt.Errorf("usage: cozy migrate new <name>")
+
+	// accept additional source/model flags and positional source dir
+	srcDir := ""
+	var positional []string
+	for i := 0; i < len(rest); i++ {
+		switch rest[i] {
+		case "-src", "--src", "-source", "--source", "-models", "--models", "-models-dir", "--models-dir":
+			if i+1 >= len(rest) {
+				return fmt.Errorf("missing value for %s", rest[i])
+			}
+			srcDir = rest[i+1]
+			i++
+		default:
+			positional = append(positional, rest[i])
+		}
 	}
-	name := sanitizeName(rest[0])
+	if len(positional) == 0 {
+		return fmt.Errorf("usage: cozy migrate new <name> [source-dir]")
+	}
+	name := sanitizeName(positional[0])
 	if name == "" {
 		return fmt.Errorf("invalid migration name")
+	}
+	if srcDir == "" && len(positional) > 1 {
+		srcDir = positional[1]
+	}
+	if srcDir == "" {
+		srcDir = "."
 	}
 
 	// number
 	n := nextNumber(f.dir)
+
+	// discover models in the source tree; fall back to a stub when none found
+	// (preserves the manual path for migrations the generator cannot derive).
+	specs, _ := findModels(srcDir)
+
 	for _, d := range []string{"sqlite", "postgres"} {
 		dir := filepath.Join(f.dir, d)
 		if err := os.MkdirAll(dir, 0o755); err != nil {
@@ -192,8 +219,13 @@ func migrateNew(args []string) error {
 		if _, err := os.Stat(file); err == nil {
 			continue
 		}
-		stub := "-- Write your reviewable SQL here.\n-- One file applies on both? No: this file is the " + d + " variant.\n"
-		if err := os.WriteFile(file, []byte(stub), 0o644); err != nil {
+		var content string
+		if len(specs) > 0 {
+			content = renderMigration(specs, d) + "\n"
+		} else {
+			content = "-- Write your reviewable SQL here.\n-- One file applies on both? No: this file is the " + d + " variant.\n"
+		}
+		if err := os.WriteFile(file, []byte(content), 0o644); err != nil {
 			return err
 		}
 		fmt.Println("created", file)

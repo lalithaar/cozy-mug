@@ -42,13 +42,14 @@ sessions except these files. Rules:
 ## Opinion ledger
 Firm opinions live in `docs/decisions/`. Project status:
 **decided and built through the model-first data layer (schema now only via
-`cozy migrate`; `EnsureSchema` removed), sessions/CSRF, global context/
+`cozy migrate` — including the `cozy migrate new` model→SQL generator;
+`EnsureSchema` removed), sessions/CSRF, global context/
 processors, forms, the `cozy` CLI (`new` + `migrate`), settings, and an opt-in
 auth package (`0018`: hashing, login/logout, current-user resolution, guards);
 remaining v0.1 work is the Default UI component set/styling, getting-started/
-docs polish, and the testing convention. Auth depth items (reset, verification,
-rate limiting) remain deferred. Nothing is undecided; deferred items live
-in `docs/roadmap.md`.**
+docs polish, the testing convention, and a live Postgres data test. Auth depth
+items (reset, verification, rate limiting) remain deferred. Nothing is
+undecided; deferred items live in `docs/roadmap.md`.**
 
 ### Firm
 - **The goal is Django/Rails-caliber DX for a secure SSR app; frugality is the

@@ -22,7 +22,7 @@ func main() {
 			fatal(err)
 		}
 	case "version", "--version", "-v":
-		fmt.Println("cozy 0.0.5")
+		fmt.Println("cozy 0.0.10")
 	default:
 		usage()
 		os.Exit(2)
@@ -32,7 +32,7 @@ func main() {
 func usage() {
 	fmt.Fprintln(os.Stderr, "usage: cozy <new|migrate<|start|>version> [args]")
 	fmt.Fprintln(os.Stderr, "  cozy new <name> [--dir DIR]            scaffold a new app")
-	fmt.Fprintln(os.Stderr, "  cozy migrate [new <name>|up]           apply migrations (default: up)")
+	fmt.Fprintln(os.Stderr, "  cozy migrate [new <name> [source-dir]|up]  apply migrations (default: up)")
 	fmt.Fprintln(os.Stderr, "  cozy version                           print the version")
 }
 

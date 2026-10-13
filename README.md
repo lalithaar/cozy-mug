@@ -66,10 +66,11 @@ raw parameterized SQL stays as the escape hatch.
 ## Status
 
 Early and **pre-release** — the API may change. Built: the core, the `app` glue,
-the model-first data layer, server-side sessions and CSRF, global view context,
-the optional template helpers, server-side forms, settings, and the `cozy` CLI
-with project scaffolding and migrations (schema via `cozy migrate`; `EnsureSchema`
-removed). Deferred: the UI component set and auth.
+the opt-in auth package, the model-first data layer (with the `cozy migrate new`
+model→SQL generator), server-side sessions and CSRF, global view context, the
+optional template helpers, server-side forms, settings, and the `cozy` CLI with
+project scaffolding and migrations (schema via `cozy migrate`; `EnsureSchema`
+removed). Deferred: the UI component set.
 A roadmap ships in the repository.
 
 ## Layout
