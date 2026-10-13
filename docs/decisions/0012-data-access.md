@@ -1,8 +1,12 @@
 # 0012 — Data access: `database/sql` + a thin `data` package (no ORM)
 
-- Status: firm
+- Status: superseded-by 0016
 - Date: 2026-10-12
 - Supersedes: none
+
+Superseded by `docs/decisions/0016` (2026-10-13): the data layer is reworked
+to be model-first. The connection, dialect, parameterization, scanner, and
+secrets discipline documented here carry over unchanged.
 
 ## Opinion
 Raw **`database/sql`**, wrapped by a small `data` package. No ORM, no query

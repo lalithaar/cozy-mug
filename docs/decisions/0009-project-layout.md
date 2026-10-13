@@ -17,8 +17,8 @@ myapp/
 ```
 
 The framework ships an `app` package: `app.Config` + `app.New` that wires
-`Logger → Errors → Views → Router`, mounts static, and exposes an
-`http.Handler`. Apps never hand-wire middleware order.
+`Logger → Errors → Session → Processors → Views → CSRF → Router`, mounts static,
+and exposes an `http.Handler`. Apps never hand-wire middleware order.
 
 ## Because
 Layout is the `rails new` moment — the gap (`docs/gap.md` row 1) between "stdlib
@@ -56,8 +56,8 @@ silently adopted in the framework.
   semantics). Root-mounted files (`favicon.ico`) are deferred; no `public/` yet.
 - `app.Config` — `Assets fs.FS` (embeds `views/`, optional `static/`),
   `Routes func(*router.Router)`, `Dev bool`, `Logger *slog.Logger`, `UI bool`,
-  `Funcs template.FuncMap`. `app.New` returns `error`; `app.Must` panics at boot
-  (`0007`).
+  `Funcs template.FuncMap`, `Session *session.Store`, `Processors []core.Processor`.
+  `app.New` returns `error`; `app.Must` panics at boot (`0007`).
 - The app is an `http.Handler` (`ServeHTTP`) so tests and the agent CLI drive it
   in-process; `App.Router()` is the escape hatch.
 - **Module path is `github.com/lalithaar/cozy-mug`** (replaces the `cozymug`

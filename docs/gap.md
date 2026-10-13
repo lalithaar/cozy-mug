@@ -2,8 +2,9 @@
 
 Purpose: this framework exists to close the gap between Go's primitives and a
 "batteries-included" full-stack experience, **without importing Rails/Django's
-weight**. This is the map of that gap and our stance per area, under the
-frugality filter (`docs/decisions/0001`).
+weight**. This is the map of that gap and our stance per area. **Scope** — what
+is owed at all — follows the goal/means split (`docs/decisions/0015`); the
+frugality filter (`docs/decisions/0001`) governs only *how* an area is built.
 
 ## The core insight
 Stdlib gives *primitives*; Rails/Django give *decisions already made*. The real
@@ -18,9 +19,16 @@ default — things Django/Rails had to engineer. **Do not rebuild these.**
 ## Stance legend
 - **Fill** — table-stakes for the experience, cheap, serves the 90%.
 - **Fill small** — fill it, but the minimal version.
+- **Minimal** — a naming/serving convention only; no helpers, no subsystem.
 - **Partial + hatch** — give ergonomics; escape hatch is raw `net/http` / SQL.
 - **Hatch** — helpers only, never a full subsystem.
 - **Skip / defer** — out of scope for now; reopening is an ADR.
+
+This legend rates **weight/ergonomics, not scope**. An area's scope is `0015`'s
+call: the essential nutrients (data access, migrations, forms, auth/identity,
+settings, sessions, errors + secure defaults) are **in scope and owed** — never
+"optional." A lighter word (`Hatch`, `Minimal`, `Fill small`) says *how much*
+framework ergonomics we add, not whether the capability exists.
 
 ## The gap, by area
 | # | Area | Stdlib today | The gap (why it's not Rails/Django) | Stance |
@@ -32,9 +40,9 @@ default — things Django/Rails had to engineer. **Do not rebuild these.**
 | 5 | Views | `html/template` | layouts/partials + loop metadata + arithmetic + formatting + `super` idiom done (opt-in `funcs`, `0011`); urlize/striptags/wordwrap still open | Fill |
 | 6 | Forms | `net/url` parsing | bind -> validate -> re-render-with-errors loop | Fill |
 | 7 | Global context | `context.Context` | built (`0014`): request-scoped values (`c.Set` / `.Values.name`) + `app.Config.Processors`; CSRF stays `{{.CSRF}}` | Fill |
-| 8 | Data access | `database/sql` + driver | built (`0012`): `data` package — dialect-inferring `Open`, `All`/`One`/`Exec`/`db.Tx`, `db:"col"` scanner, closure DI; **no ORM** | Partial + hatch |
-| 9 | Migrations | none | schema versioning + runner | Fill small |
-| 10 | Auth / users | `crypto/*` | users, login/logout, hashing, permissions | Hatch |
+| 8 | Data access | `database/sql` + driver | built (`0016`, supersedes `0012`): model-first — one struct derives schema, querying (fluent builder over generated column tokens), CRUD (whole-row + optimistic lock → `core.Conflict`), relations (`*T`/`[]*T`, eager `With`); `Table[M]()` + `C`/`R` tokens; verified on SQLite; `EnsureSchema` interim until the migration runner lands; connection/dialect/secrets guards carried over | Fill |
+| 9 | Migrations | none | designed (`0016`): generated, reviewable, versioned per-dialect SQL artifacts; explicit `migrate` step, never at boot; destructive changes surfaced, never auto-guessed | Fill |
+| 10 | Auth / users | `crypto/*` | users, login/logout, hashing, permissions | **Fill** — nutrient (`0015`) |
 | 11 | Assets / static | `embed`, `FileServer` | serving conventions, cache-busting | Minimal + hatch |
 | 12 | Errors & logging | `http.Error`, `log/slog` | 404/500 conventions, dev error pages, request log + ID, panic recovery | Fill |
 | 13 | Settings | `os.Getenv` | a settings/config convention | Minimal |
@@ -44,8 +52,11 @@ default — things Django/Rails had to engineer. **Do not rebuild these.**
 | 17 | i18n, jobs, mailers | none | translations, background jobs, Mailer | **Defer** / hatch |
 
 ## How this maps to work
-- Rows 1-7, 9, 12 = the walking skeleton + its conventions (kept minimal).
+- Rows 1-7, 12 = the walking skeleton + its conventions (kept minimal).
 - Rows 8, 11, 13, 14 = minimal + escape hatches.
-- Rows 10, 15, 16 = helpers / generators, never full subsystems.
+- Row 10 (auth/users) is an **essential nutrient** (`0015`): in scope and owed,
+  deferred only in sequencing (`docs/roadmap.md`); only its *depth* is open —
+  migrations are now designed with the data rework (`0016`). Rows 15, 16 =
+  generators, never full subsystems.
 - Row 17 = deferred; reopening any deferred row is an ADR and may hit the scope
   non-goals (`docs/decisions/0002`).

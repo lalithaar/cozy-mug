@@ -21,10 +21,10 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 
 - [ ] **Project layout / scaffolding** (`gap` 1) — decided (`0009`): conventional dirs, handlers/, views/, static/. TODO: canonical example app at `examples/app` (built; polish + getting-started).
 - [x] **App glue** — `app` package (`0009`): `app.New(Config)` wires Logger -> Errors -> Session -> Processors -> Views -> CSRF -> Router, mounts static, exposes an `http.Handler`.
-- [x] **Data access** (`gap` 8, `0012`) — `data` package: `Open` infers the dialect (SQLite default / Postgres) and carries both drivers; `All`/`One`/`Exec`/`db.Tx`; `db:"col"` scanner; `One` -> `core.NotFound`; DB by closure DI; injection/secret guards. Example app wired to SQLite. (Getting-started write-up lands with *Identity & docs*.) Migrations stay deferred (`gap` 9).
-- [x] **Global context / processors** (`gap` 7, `0014`) — request-scoped values (`c.Set` / `{{.Values.name}}`) plus `app.Config.Processors` (`core.Processor`), run after sessions and before views; CSRF stays `{{.CSRF}}`. Example uses a processor for flash. (`0014` proposed — pending human sign-off.)
+- [ ] **Data access rework** (`gap` 8–9, `0016`, supersedes `0012`) — model-first: one struct derives schema + queries (generated tokens) + CRUD (whole-row, optimistic `.version` lock → `core.Conflict`) + relations (`*T`/`[]*T`, eager `With(...)`); auto timestamps; generated, reviewable per-dialect (sqlite/postgres) migration artifacts + an explicit `migrate` step. The `data` package was rebuilt (`db.Table[M]()` entry point, `data/C`+`data/R` tokens, `Query` pipe; `EnsureSchema` is the interim boot-time creator); verified on SQLite, example rewired, guarded by `data/model_test.go`. Remaining: the generated-migrations runner (CLI-invoked `cozy migrate`, firm — sequenced with the `cozy` CLI) + a live Postgres test; `EnsureSchema` is removed when the runner lands (never coexists). The safe guards (parameterization, dialect inference, DSN scrubbing, secret rules) carried over.
+- [x] **Global context / processors** (`gap` 7, `0014`) — request-scoped values (`c.Set` / `{{.Values.name}}`) plus `app.Config.Processors` (`core.Processor`), run after sessions and before views; CSRF stays `{{.CSRF}}`. Example uses a processor for flash.
 - [ ] **Forms** (`gap` 6) — bind -> validate -> re-render-with-errors.
-- [x] **Sessions + CSRF** (`gap` 4, `0013`) — server-side sessions by default (`session.NewStore(db)`, framework-owned `sessions` table, opaque id cookie, revocable, no global key) with a sealed-cookie escape hatch (`session.New`); CSRF tokens required on unsafe methods; on by default via `app.Config.Session`; `c.Session()` / `session.From(c)`, `{{.CSRF}}`. (`0013` drafted as proposed — pending human sign-off.)
+- [x] **Sessions + CSRF** (`gap` 4, `0013`) — server-side sessions by default (`session.NewStore(db)`, framework-owned `sessions` table, opaque id cookie, revocable, no global key) with a sealed-cookie escape hatch (`session.New`); CSRF tokens required on unsafe methods; on by default via `app.Config.Session`; `c.Session()` / `session.From(c)`, `{{.CSRF}}`.
 - [ ] **Settings** (`gap` 13) — minimal env-based config convention.
 - [ ] **Default UI** (`0003`, `0010`) — architecture decided + `ui` scaffolded; component set and styling TBD.
 - [x] **Template helpers** (`0006`, `0011`) — `funcs` package (opt-in): loop metadata + arithmetic + formatting (text/join/default/pluralize/comma/date/linebreaksbr) done; `super`/nesting idiom documented.
@@ -32,15 +32,24 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 - [ ] **Testing convention** (`gap` 14) — documented `httptest` / test-client seam (agent CLI may slip).
 
 ### WIP / follow-ups (not release gates)
-- **Data-layer verification** (`0012`) — the guards are written but unproven:
-  tests for Postgres dialect detection (`detectDialect`), DSN redaction
-  (`safeErr`), and `PRAGMA foreign_keys` enforcement; a live Postgres integration
-  test gated behind an env var (needs a server/container).
+- **Data-layer verification** (`0016`) — the guards carried from `0012`
+  (dialect detection, DSN redaction, `PRAGMA foreign_keys` enforcement) are
+  still unproven; a live Postgres integration test is env-gated (needs a
+  server/container). The model layer itself is SQLite-verified in
+  `data/model_test.go`.
 - **Supply chain** (`0001`, `0012`) — run `govulncheck` in CI and keep the two
   drivers (`modernc.org/sqlite`, `pgx/v5`) current.
 
-### Deferred past v0.1 (reopening = ADR)
-- Migrations (`gap` 9), auth/users (`gap` 10, hatch), admin/scaffold-gen (`gap` 15),
-  agent CLI (`gap` 16, `0002`), i18n/jobs/mail (`gap` 17), tier-3 `{{render}}`
-  boundary (`0007`), asset cache-busting (`gap` 11), contrast-aware theming +
-  default themes (`docs/ideas.md`).
+### Deferred past v0.1 — sequencing, not scope (reopening = ADR)
+**Deferred means "not yet built," never "optional."** The nutrients among these
+(migrations, auth) are in scope (`0015`); this section orders work, it does not
+mark anything discretionary.
+- Auth/users (`gap` 10), admin/scaffold-gen (`gap` 15), agent CLI (`gap` 16,
+  `0002`), i18n/jobs/mail (`gap` 17), tier-3 `{{render}}` boundary (`0007`),
+  asset cache-busting (`gap` 11). (Migrations were deferred here; `0016` now
+  designs them as part of the data-layer rework.)
+
+### Ideas (not commitments)
+- Captured-but-undecided work — e.g. contrast-aware theming + default themes —
+  lives in `docs/ideas.md`; it is **not** in scope and **not** sequenced. (`ui`
+  is a scaffold: no components/themes are decided yet.)

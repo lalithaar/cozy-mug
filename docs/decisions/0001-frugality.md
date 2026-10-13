@@ -1,6 +1,11 @@
-# 0001 — Frugality is the top-level filter
+# 0001 — Frugality (an implementation constraint)
 
-- Status: firm
+> **Amended by [0015](0015-goal-vs-means.md).** Frugality is a **means** — *how*
+> we build (small, stdlib-first, no needless deps) — not the top-level goal
+> (*what* we build). The discipline below stands; its claim to rank above the DX
+> goal does not. An **essential capability is never denied on frugality grounds.**
+
+- Status: firm, amended by 0015
 - Date: 2026-10-11
 - Supersedes: none
 

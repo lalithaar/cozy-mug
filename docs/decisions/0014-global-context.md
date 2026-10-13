@@ -1,6 +1,6 @@
 # 0014 — Global context: request-scoped values and processors
 
-- Status: proposed
+- Status: firm
 - Date: 2026-10-12
 - Supersedes: none
 

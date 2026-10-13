@@ -32,11 +32,14 @@ func main() {
 	db := core.Must(data.Open(ctx, dsn))
 	defer db.Close()
 
-	// Schema/migrations are the app's job; data.Open only wires the connection.
-	store := handlers.NewStore(db)
-	if err := store.EnsureSchema(ctx); err != nil {
-		log.Fatal(err)
-	}
+	// Schema comes from the model (0016): EnsureSchema creates tables + indexes,
+// idempotently (IF NOT EXISTS). It is the interim boot-time creator — real
+// deployments replace it with the generated-migrations runner (cozy migrate:
+// reviewable per-dialect artifacts, explicit step, never at boot).
+store := handlers.NewStore(db)
+if err := store.EnsureSchema(ctx); err != nil {
+	log.Fatal(err)
+}
 
 	// Sessions + CSRF, kept server-side in the database (ADR 0013): the cookie
 	// holds only an opaque id, so sessions are revocable and there is no global

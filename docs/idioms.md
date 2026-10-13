@@ -79,44 +79,76 @@ Multi-level layouts compose the same way (a base region calling another base's
 partial). No engine change, no new model — just `{{define}}`/`{{template}}`. (`0011`)
 
 
-## Data access (`0012`)
-Open once at boot and inject the handle by closure (`0009`):
+## Data access — model-first (`0016`)
+Open once at boot and inject the handle by closure (`0009`). Then build queries
+against the **model**, not hand-written SQL:
 
 ```go
 db := core.Must(data.Open(ctx, os.Getenv("DATABASE_URL"))) // file:/:memory: -> SQLite; postgres:// -> Postgres
 defer db.Close()
 
-store := handlers.NewStore(db)     // type Store struct { db *data.DB }
-app.Config{Routes: store.Register} // the method closes over the DB
-```
-
-Write the SQL your database speaks — no rewriting (`?` SQLite, `$1` Postgres).
-Args are bound parameters, so never build SQL from input:
-
-```go
+// The model is the single source of truth: table, columns, pk, maintained
+// timestamps/version, relations. The derived SQL is the same in both dialects.
 type Note struct {
-	ID    int64  `db:"id"`
-	Title string `db:"title"`
+	data.Model `db:"notes"`
+	ID        int64     `db:"id auto"`
+	Title     string    `db:"title"`
+	Body      string    `db:"body"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+	Version   int64     `db:"version"`
+}
+
+// Typed column tokens make column typos compile errors. cozy gen will emit this
+// block; hand-written today.
+var notes = struct {
+	ID, Title, Body data.Col
+}{
+	ID:    data.C[Note]("id"),
+	Title: data.C[Note]("title"),
+	Body:  data.C[Note]("body"),
 }
 
 func (s *Store) allNotes(ctx context.Context) ([]Note, error) {
-	return data.All[Note](ctx, s.db, `select id, title from notes order by id`)
+	return s.db.Table[Note]().OrderBy(notes.ID.Asc()).All(ctx)
 }
 
 func (s *Store) noteByID(ctx context.Context, id int64) (Note, error) {
-	return data.One[Note](ctx, s.db, `select id, title from notes where id = ?`, id)
+	return s.db.Table[Note]().Where(notes.ID.Eq(id)).One(ctx)
+}
+
+func (s *Store) addNote(ctx context.Context, title, body string) (*Note, error) {
+	n := &Note{Title: title, Body: body}
+	if err := s.db.Table[Note]().Create(ctx, n); err != nil {
+		return nil, err
+	}
+	return n, nil // back-filled: id, timestamps, version
 }
 ```
 
-- `One` returns `core.NotFound` on no rows, so the handler is `return c.Error(err)`. (`0007`)
-- Column -> field by name, case-insensitive; `db:"col"` wins; exported embeds
-  flatten in; unknown columns are ignored. Nullable column -> `*T`/`sql.Null*`. (`0012`)
-- Transaction (rolls back on error or panic):
-  `db.Tx(ctx, func(tx *data.Tx) error { _, err := data.Exec(ctx, tx, `…`); return err })`. (`0012`)
-- `data.DB` wraps `*sql.DB`, so the entry points are the helpers — there is no
-  raw `db.Exec(query)`. `*sql.Rows`/`*sql.Tx` stay reachable as the escape hatch.
-- Never interpolate input as an identifier (`ORDER BY`, column name) — pick from a
-  fixed set. The DSN is a secret: read it from the environment, never log it. (`0012`)
+- Query pipe: `Table[M]().Where(…).OrderBy(…).Limit(n).Offset(n).Page(p, per)` —
+  every step returns a fresh `Query`; terminal calls are `Count`, `All`, `One`,
+  `Page`. Go has no external receivers, so `db.Posts()` is impossible — the
+  tokens keep the pipe checked instead. (`0016`)
+- `One` returns `core.NotFound` on no rows; a loader hands it to `c.Error` (`0007`).
+- Operators are bounded: `Eq Ne Gt Gte Lt Lte Like In NotIn Nil NotNil`. A
+  predicate or sort on an unknown column is a loud error, never silent `NULL`.
+- Mutations are whole-row with an optimistic lock: `Update` writes the row under
+  `WHERE id = ? AND version = ?` (the version column is auto-maintained) and
+  returns `core.Conflict` (409) on a stale write — the handler re-renders
+  "saved elsewhere, reload". `Delete` is whole-row under the pk; deleting a
+  missing row is an error. (`0016`)
+- A `created_at`/`updated_at` column is maintained automatically when present. (`0016`)
+- Relations are declared as `*Child` (belongs-to) / `[]*Child` (has-many) fields
+  tagged `db:"ref:<fk-column>"`. They load **only when asked**, one extra query
+  per relation: `.With(notes.Author)` — no lazy N+1. (`0016`)
+- Schema at boot: `Table[M]().EnsureSchema(ctx)` (IF NOT EXISTS) is the interim
+  creator; final word is generated, reviewable, per-dialect migration artifacts
+  applied by an explicit `cozy migrate` step — never at boot. (`0016`)
+- The raw escape hatch stays: `data.All`/`One`/`Exec`/`Tx` for a query a model
+  can't express. args are always bound, never interpolated — and never as
+  identifiers (`ORDER BY`, column name): pick from a fixed set. The DSN is a
+  secret: read from the environment, never log it. (`0016`, `0012`, secrets heuristic)
 
 ## Sessions & CSRF (`0013`)
 Sessions live server-side by default (a framework-owned `sessions` table); wire the
@@ -209,6 +241,8 @@ func showUser(c *core.Context) core.Response {
 
 ```go
 opts := core.Options{Dev: isDev, Logger: slog.Default()}
+// minimal hand-wiring: Logger outermost, Errors next. app.New inserts
+// Session -> Processors -> Views -> CSRF after Errors (0013, 0014, 0009).
 r.Use(core.Logger(opts), core.Errors(opts), views.Middleware(set))
 ```
 
@@ -231,7 +265,7 @@ myapp/
 ```
 
 `main.go` — open the DB once and inject it by handing over the store's method
-(`0009`, `0012`):
+(`0009`, `0016`):
 ```go
 //go:embed views static
 var assets embed.FS
@@ -251,7 +285,7 @@ func main() {
 }
 ```
 
-`handlers/handlers.go` — the store carries the DB so the routes close over it (`0012`):
+`handlers/handlers.go` — the store carries the DB so the routes close over it (`0016`):
 ```go
 type Store struct{ db *data.DB }
 
@@ -262,8 +296,7 @@ func (s *Store) Register(r *router.Router) {
 }
 
 func (s *Store) showUser(c *core.Context) core.Response {
-	u, err := data.One[User](c.R.Context(), s.db,
-		`select id, name from users where id = ?`, c.Param("id"))
+	u, err := s.db.Table[User]().Where(users.ID.Eq(c.Param("id"))).One(c.R.Context())
 	if err != nil {
 		return c.Error(err) // One maps no-rows to core.NotFound (0007)
 	}
@@ -271,7 +304,8 @@ func (s *Store) showUser(c *core.Context) core.Response {
 }
 ```
 
-- Middleware order (Logger -> Errors -> Views) is wired by `app`, never by hand.
+- The full order (Logger -> Errors -> Session -> Processors -> Views -> CSRF ->
+  Router) is wired by `app`, never by hand.
 - The app is an `http.Handler`, so tests drive it with `httptest` (`a.ServeHTTP`).
 - `static/` is served at `/static/`; with `UI: true`, the `ui` stylesheet is at
   `/static/ui/base.css`. (`0009`, `0010`)

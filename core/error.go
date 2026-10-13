@@ -31,6 +31,9 @@ func Unauthorized(cause error) *HTTPError {
 	return &HTTPError{Status: http.StatusUnauthorized, Cause: cause}
 }
 func Forbidden(cause error) *HTTPError { return &HTTPError{Status: http.StatusForbidden, Cause: cause} }
+func Conflict(cause error) *HTTPError {
+	return &HTTPError{Status: http.StatusConflict, Cause: cause}
+}
 func Internal(cause error) *HTTPError {
 	return &HTTPError{Status: http.StatusInternalServerError, Cause: cause}
 }

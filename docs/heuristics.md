@@ -106,7 +106,7 @@ Operational rules. Every entry uses this shape:
 
 ### SQL values are parameters; SQL identifiers are code
 - Opinion: Every value goes to the driver as a bound parameter. A table/column name, an `ORDER BY`, or any other identifier comes from a fixed allow-list in code — never from the request.
-- Because: `database/sql` parameterizes *values* for free, but identifiers cannot be bound — a request-derived `ORDER BY` is still injection, and it is the exact hole an ORM quietly invites you to open. The data layer (`0012`) builds no SQL, so the only way to inject is to do it by hand.
+- Because: `database/sql` parameterizes *values* for free, but identifiers cannot be bound — a request-derived `ORDER BY` is still injection, and it is the exact hole an ORM quietly invites you to open. With model-first data (`0016`) identifiers are a fixed, generated token set — the rule becomes structural, never a discipline.
 - Apply when: Writing any query; exposing sorting, filtering, or column selection.
 - Deviate/ask: Never interpolate request data into SQL text; if a feature needs dynamic identifiers, drive them from a fixed set.
 - Status: firm

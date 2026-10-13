@@ -1,6 +1,6 @@
 # 0013 — Sessions & CSRF: server-side store, sealed-cookie escape hatch
 
-- Status: proposed
+- Status: firm
 - Date: 2026-10-12
 - Supersedes: an earlier draft of *this* decision that defaulted to a sealed
   cookie; the reasoning for the reversal is recorded under **Because**.
@@ -145,7 +145,7 @@ s.Destroy()                 // on logout: deletes the row, clears the cookie
 
 ## Superseded draft
 An earlier draft of this ADR proposed the sealed cookie as the default. It was
-superseded before sign-off (this ADR is still `proposed`); see **Because**.
+superseded before sign-off (this ADR is now `firm`); see **Because**.
 
 ## Apply when
 Any handler needs per-visitor state across requests (login, cart, flash) or
