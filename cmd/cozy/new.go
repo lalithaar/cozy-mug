@@ -58,7 +58,7 @@ func runNew(args []string) error {
 	if err != nil {
 		return err
 	}
-	gomod := fmt.Sprintf("module %s\n\ngo 1.27\n\nrequire github.com/lalithaar/cozy-mug v0.0.8\n", module)
+	gomod := fmt.Sprintf("module %s\n\ngo 1.27\n\nrequire github.com/lalithaar/cozy-mug v0.0.9\n", module)
 	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o644); err != nil {
 		return err
 	}
