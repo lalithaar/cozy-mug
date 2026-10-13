@@ -66,7 +66,7 @@ raw parameterized SQL stays as the escape hatch.
 
 Early and **pre-release** — the API may change. Built: the core, the `app` glue,
 the model-first data layer, server-side sessions and CSRF, global view context,
-and the optional template helpers. In progress: forms. Deferred: a generated
+and the optional template helpers, server-side forms. Deferred: a generated
 migrations CLI, settings, the UI component set, and auth. A roadmap ships in the
 repository.
 

@@ -4,7 +4,6 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/lalithaar/cozy-mug/core"
 	"github.com/lalithaar/cozy-mug/data"
+	"github.com/lalithaar/cozy-mug/form"
 	"github.com/lalithaar/cozy-mug/router"
 	"github.com/lalithaar/cozy-mug/session"
 )
@@ -23,7 +23,7 @@ import (
 type Note struct {
 	data.Model `db:"notes"`
 	ID         int64     `db:"id auto"`
-	Title      string    `db:"title"`
+	Title      string    `db:"title" required:"" min:"3"`
 	Body       string    `db:"body"`
 	CreatedAt  time.Time `db:"created_at"`
 	UpdatedAt  time.Time `db:"updated_at"`
@@ -93,6 +93,7 @@ func (s *Store) Register(r *router.Router) {
 type homeView struct {
 	core.Globals
 	Notes []Note
+	Form  *form.Form[Note]
 }
 
 type noteView struct {
@@ -112,13 +113,22 @@ func (s *Store) index(c *core.Context) core.Response {
 // createNote handles the form POST. It is CSRF-protected by the session
 // middleware, which rejects the request before this runs if the token is wrong.
 func (s *Store) createNote(c *core.Context) core.Response {
-	title := strings.TrimSpace(c.Form("title"))
-	body := strings.TrimSpace(c.Form("body"))
-	if title == "" {
-		return c.Error(core.BadRequest(errors.New("title is required")))
+	f := form.Bind[Note](c)
+	if !f.Valid() {
+		notes, err := s.allNotes(c.R.Context())
+		if err != nil {
+			return c.Error(err)
+		}
+		return c.Render(http.StatusUnprocessableEntity, "home", &homeView{Notes: notes, Form: f})
 	}
-	if err := s.db.Table[Note]().Create(c.R.Context(), &Note{Title: title, Body: body}); err != nil {
-		return c.Error(err)
+	n := f.Value
+	if strings.TrimSpace(n.Body) != n.Body {
+		n.Body = strings.TrimSpace(n.Body)
+	}
+	if err := s.db.Table[Note]().Create(c.R.Context(), &n); err != nil {
+		f.AddError("", "Could not save the note.")
+		notes, _ := s.allNotes(c.R.Context())
+		return c.Render(http.StatusUnprocessableEntity, "home", &homeView{Notes: notes, Form: f})
 	}
 	if sess := session.From(c); sess != nil {
 		sess.Set("flash", "Note added.")
