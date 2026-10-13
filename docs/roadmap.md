@@ -21,9 +21,10 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 
 - [ ] **Project layout / scaffolding** (`gap` 1) — decided (`0009`): conventional dirs, handlers/, views/, static/. TODO: canonical example app at `examples/app` (built; polish + getting-started).
 - [x] **App glue** — `app` package (`0009`): `app.New(Config)` wires Logger -> Errors -> Session -> Processors -> Views -> CSRF -> Router, mounts static, exposes an `http.Handler`.
-- [ ] **Data access rework** (`gap` 8–9, `0016`, supersedes `0012`) — model-first: one struct derives schema + queries (generated tokens) + CRUD (whole-row, optimistic `.version` lock → `core.Conflict`) + relations (`*T`/`[]*T`, eager `With(...)`); auto timestamps; generated, reviewable per-dialect (sqlite/postgres) migration artifacts + an explicit `migrate` step. The `data` package was rebuilt (`db.Table[M]()` entry point, `data/C`+`data/R` tokens, `Query` pipe; `EnsureSchema` is the interim boot-time creator); verified on SQLite, example rewired, guarded by `data/model_test.go`. Remaining: the generated-migrations runner (CLI-invoked `cozy migrate`, firm — sequenced with the `cozy` CLI) + a live Postgres test; `EnsureSchema` is removed when the runner lands (never coexists). The safe guards (parameterization, dialect inference, DSN scrubbing, secret rules) carried over.
+- [ ] **Data access rework** (`gap` 8–9, `0016`, supersedes `0012`) — model-first: one struct derives schema + queries (generated tokens) + CRUD (whole-row, optimistic `.version` lock → `core.Conflict`) + relations (`*T`/`[]*T`, eager `With(...)`); auto timestamps; generated, reviewable per-dialect (sqlite/postgres) migration artifacts + an explicit `migrate` step. The `data` package was rebuilt (`db.Table[M]()` entry point, `data/C`+`data/R` tokens, `Query` pipe; `EnsureSchema` is the interim boot-time creator); verified on SQLite, example rewired, guarded by `data/model_test.go`. Remaining: the generated-migrations runner (CLI-invoked `cozy migrate`, firm; the CLI is pulled into v0.1) + a live Postgres test; `EnsureSchema` is removed when the runner lands (never coexists). The safe guards (parameterization, dialect inference, DSN scrubbing, secret rules) carried over.
+- [ ] **CLI** (`gap` 16) — **pulled into v0.1** (was deferred): `cozy migrate` invokes the generated-migrations runner (`0016`), so the CLI shell + the generated-artifact pipeline land with the data rework. Non-migration subcommands (generators/console, agent e2e `0002`) are sequenced after but share the binary.
 - [x] **Global context / processors** (`gap` 7, `0014`) — request-scoped values (`c.Set` / `{{.Values.name}}`) plus `app.Config.Processors` (`core.Processor`), run after sessions and before views; CSRF stays `{{.CSRF}}`. Example uses a processor for flash.
-- [ ] **Forms** (`gap` 6) — bind -> validate -> re-render-with-errors.
+- [ ] **Forms** (`gap` 6, **next focus**) — bind -> validate -> re-render-with-errors.
 - [x] **Sessions + CSRF** (`gap` 4, `0013`) — server-side sessions by default (`session.NewStore(db)`, framework-owned `sessions` table, opaque id cookie, revocable, no global key) with a sealed-cookie escape hatch (`session.New`); CSRF tokens required on unsafe methods; on by default via `app.Config.Session`; `c.Session()` / `session.From(c)`, `{{.CSRF}}`.
 - [ ] **Settings** (`gap` 13) — minimal env-based config convention.
 - [ ] **Default UI** (`0003`, `0010`) — architecture decided + `ui` scaffolded; component set and styling TBD.
@@ -44,10 +45,10 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 **Deferred means "not yet built," never "optional."** The nutrients among these
 (migrations, auth) are in scope (`0015`); this section orders work, it does not
 mark anything discretionary.
-- Auth/users (`gap` 10), admin/scaffold-gen (`gap` 15), agent CLI (`gap` 16,
-  `0002`), i18n/jobs/mail (`gap` 17), tier-3 `{{render}}` boundary (`0007`),
-  asset cache-busting (`gap` 11). (Migrations were deferred here; `0016` now
-  designs them as part of the data-layer rework.)
+- Auth/users (`gap` 10), admin/scaffold-gen (`gap` 15), i18n/jobs/mail (`gap` 17),
+  tier-3 `{{render}}` boundary (`0007`), asset cache-busting (`gap` 11).
+  (Migrations **and the CLI** were deferred here; `0016` designs the migrations
+  and both are now **pulled into v0.1** — `cozy migrate` first.)
 
 ### Ideas (not commitments)
 - Captured-but-undecided work — e.g. contrast-aware theming + default themes —

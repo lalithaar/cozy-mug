@@ -41,14 +41,14 @@ framework ergonomics we add, not whether the capability exists.
 | 6 | Forms | `net/url` parsing | bind -> validate -> re-render-with-errors loop | Fill |
 | 7 | Global context | `context.Context` | built (`0014`): request-scoped values (`c.Set` / `.Values.name`) + `app.Config.Processors`; CSRF stays `{{.CSRF}}` | Fill |
 | 8 | Data access | `database/sql` + driver | built (`0016`, supersedes `0012`): model-first — one struct derives schema, querying (fluent builder over generated column tokens), CRUD (whole-row + optimistic lock → `core.Conflict`), relations (`*T`/`[]*T`, eager `With`); `Table[M]()` + `C`/`R` tokens; verified on SQLite; `EnsureSchema` interim until the migration runner lands; connection/dialect/secrets guards carried over | Fill |
-| 9 | Migrations | none | designed (`0016`): generated, reviewable, versioned per-dialect SQL artifacts; explicit `migrate` step, never at boot; destructive changes surfaced, never auto-guessed | Fill |
+| 9 | Migrations | none | designed (`0016`): generated, reviewable, versioned per-dialect SQL artifacts; explicit `migrate` step, never at boot; destructive changes surfaced, never auto-guessed. Runner + CLI **pulled into v0.1** (`cozy migrate` first) | Fill |
 | 10 | Auth / users | `crypto/*` | users, login/logout, hashing, permissions | **Fill** — nutrient (`0015`) |
 | 11 | Assets / static | `embed`, `FileServer` | serving conventions, cache-busting | Minimal + hatch |
 | 12 | Errors & logging | `http.Error`, `log/slog` | 404/500 conventions, dev error pages, request log + ID, panic recovery | Fill |
 | 13 | Settings | `os.Getenv` | a settings/config convention | Minimal |
 | 14 | Testing | `net/http/httptest` | test client, fixtures, DB reset | Partial + agent CLI |
 | 15 | Admin / CRUD gen | none | Django admin, `rails generate scaffold` | **Skip** -> generator |
-| 16 | Dev console / CLI | none | `manage.py`, `rails console`, generators | Agent CLI (`0002`) |
+| 16 | Dev console / CLI | none | `manage.py`, `rails console`, generators | **Pulled into v0.1** — `cozy migrate` first; generators/console + agent e2e (`0002`) sequenced after |
 | 17 | i18n, jobs, mailers | none | translations, background jobs, Mailer | **Defer** / hatch |
 
 ## How this maps to work

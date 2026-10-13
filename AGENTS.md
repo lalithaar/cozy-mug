@@ -41,9 +41,10 @@ sessions except these files. Rules:
 
 ## Opinion ledger
 Firm opinions live in `docs/decisions/`. Project status:
-**decided and built through sessions/CSRF and global context / processors; the
-remaining v0.1 work is forms, plus settings, docs, and UI. Nothing is undecided;
-deferred items live in `docs/roadmap.md`.**
+**decided and built through the model-first data layer, sessions/CSRF and global
+context / processors; the remaining v0.1 work is forms (next focus), the
+migrations CLI (pulled into v0.1), settings, UI, docs, and the testing
+convention. Nothing is undecided; deferred items live in `docs/roadmap.md`.**
 
 ### Firm
 - **The goal is Django/Rails-caliber DX for a secure SSR app; frugality is the
@@ -93,7 +94,7 @@ deferred items live in `docs/roadmap.md`.**
   `docs/decisions/0011`.
 - **Data access is model-first, derived from one declaration** — the model struct
   (embedding `data.Model`) is the single source of truth: schema, generated
-  column tokens for the fluent query builder (`db.Posts().Where(P.AuthorID.Eq(uid))…`),
+  column tokens for the fluent query builder (`db.Table[Post]().Where(P.AuthorID.Eq(uid))…`),
   CRUD (whole-row + optimistic `.version` lock → `core.Conflict`), auto
   timestamps, and relations (`*T`/`[]*T` fields, loaded eagerly via explicit
   `With(...)` — never lazy N+1). Migrations are generated, reviewable,
@@ -120,8 +121,9 @@ deferred items live in `docs/roadmap.md`.**
   `docs/decisions/0014`.
 
 ### Open — do not guess, surface to the human
-Per-area gap map + stance: `docs/gap.md`. Nothing is currently undecided. Items
-deferred to later releases (auth/users, admin/scaffold-gen, agent CLI, i18n/jobs/
-mail, tier-3 `{{render}}` boundary) live in `docs/roadmap.md` —
-**deferred means "not yet built," never "optional"** (`0015`); reopening any is an
-ADR.
+Per-area gap map + stance: `docs/gap.md`. Nothing is currently undecided. The CLI
+is **pulled into v0.1** (`cozy migrate` first; the generated-migrations runner
+rides with it). Items still deferred to later releases (auth/users,
+admin/scaffold-gen, i18n/jobs/mail, tier-3 `{{render}}` boundary) live in
+`docs/roadmap.md` — **deferred means "not yet built," never "optional"** (`0015`);
+reopening any is an ADR.
