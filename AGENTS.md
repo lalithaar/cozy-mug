@@ -43,9 +43,11 @@ sessions except these files. Rules:
 Firm opinions live in `docs/decisions/`. Project status:
 **decided and built through the model-first data layer (schema now only via
 `cozy migrate`; `EnsureSchema` removed), sessions/CSRF, global context/
-processors, forms, the `cozy` CLI (`new` + `migrate`), and settings; the
+processors, forms, the `cozy` CLI (`new` + `migrate`), settings, and an opt-in
+auth package (`0018`: hashing, login/logout, current-user resolution, guards);
 remaining v0.1 work is the Default UI component set/styling, getting-started/
-docs polish, and the testing convention. Nothing is undecided; deferred items live
+docs polish, and the testing convention. Auth depth items (reset, verification,
+rate limiting) remain deferred. Nothing is undecided; deferred items live
 in `docs/roadmap.md`.**
 
 ### Firm
@@ -125,7 +127,9 @@ in `docs/roadmap.md`.**
 ### Open — do not guess, surface to the human
 Per-area gap map + stance: `docs/gap.md`. Nothing is currently undecided. The CLI
 is **pulled into v0.1** (`cozy migrate` first; the generated-migrations runner
-rides with it). Items still deferred to later releases (auth/users,
-admin/scaffold-gen, i18n/jobs/mail, tier-3 `{{render}}` boundary) live in
+rides with it). Auth/users (`gap` 10) is now implemented as the opt-in `auth`
+package (`0018`), with reset/verification/rate-limiting still out of scope.
+Items still deferred to later releases (admin/scaffold-gen, i18n/jobs/mail,
+tier-3 `{{render}}` boundary) live in
 `docs/roadmap.md` — **deferred means "not yet built," never "optional"** (`0015`);
 reopening any is an ADR.

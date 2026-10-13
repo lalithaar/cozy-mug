@@ -42,7 +42,7 @@ framework ergonomics we add, not whether the capability exists.
 | 7 | Global context | `context.Context` | built (`0014`): request-scoped values (`c.Set` / `.Values.name`) + `app.Config.Processors`; CSRF stays `{{.CSRF}}` | Fill |
 | 8 | Data access | `database/sql` + driver | built (`0016`, supersedes `0012`): model-first — one struct derives schema, querying (fluent builder over generated column tokens), CRUD (whole-row + optimistic lock → `core.Conflict`), relations (`*T`/`[]*T`, eager `With`); `Table[M]()` + `C`/`R` tokens; schema via `cozy migrate` (`EnsureSchema` removed, `SchemaSQL` for tools/tests); verified on SQLite; connection/dialect/secrets guards carried over | Fill |
 | 9 | Migrations | none | designed + runner built (`0016`): `cozy migrate` applies reviewable per-dialect SQL; `EnsureSchema` removed. A model->migration generator is still open; destructive changes surfaced, never auto-guessed. | Fill |
-| 10 | Auth / users | `crypto/*` | users, login/logout, hashing, permissions | **Fill** — nutrient (`0015`) |
+| 10 | Auth / users | `crypto/*` | users, login/logout, hashing, permissions | **Fill** — nutrient (`0015`): opt-in `auth` package built (`0018`): PBKDF2-SHA256 hashing, session-backed login/logout, current-user processor, predicate guards. User schema stays app-owned; reset/mailer/rate-limiting deferred. |
 | 11 | Assets / static | `embed`, `FileServer` | serving conventions, cache-busting | Minimal + hatch |
 | 12 | Errors & logging | `http.Error`, `log/slog` | 404/500 conventions, dev error pages, request log + ID, panic recovery | Fill |
 | 13 | Settings | `os.Getenv` | a settings/config convention | Minimal |
@@ -54,9 +54,11 @@ framework ergonomics we add, not whether the capability exists.
 ## How this maps to work
 - Rows 1-7, 12 = the walking skeleton + its conventions (kept minimal).
 - Rows 8, 11, 13, 14 = minimal + escape hatches.
-- Row 10 (auth/users) is an **essential nutrient** (`0015`): in scope and owed,
-  deferred only in sequencing (`docs/roadmap.md`); only its *depth* is open —
-  migrations are now designed with the data rework (`0016`). Rows 15, 16 =
-  generators, never full subsystems.
+- Row 10 (auth/users) is an **essential nutrient** (`0015`): now implemented
+  as the opt-in `auth` package (`0018`) — hashing, login/logout, current-user
+  resolution, and guards. Depth remains open: password reset, email verification,
+  rate limiting, and admin-side user management are not yet in the package; the
+  User model stays app-owned (`0016`). Rows 15, 16 = generators, never full
+  subsystems.
 - Row 17 = deferred; reopening any deferred row is an ADR and may hit the scope
   non-goals (`docs/decisions/0002`).

@@ -25,6 +25,7 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 - [x] **CLI** (`gap` 16) — built: `cozy new` scaffolds apps and `cozy migrate` (`up` + `migrate new`) applies reviewable per-dialect SQL (`migrations/<dialect>/*.sql`). Non-migration subcommands (generators/console, agent e2e `0002`) are sequenced after but share the binary.
 - [x] **Global context / processors** (`gap` 7, `0014`) — request-scoped values (`c.Set` / `{{.Values.name}}`) plus `app.Config.Processors` (`core.Processor`), run after sessions and before views; CSRF stays `{{.CSRF}}`. Example uses a processor for flash.
 - [x] **Forms** (`gap` 6) — `form` package: bind -> validate (tag rules + model hook) -> re-render-with-errors; raw repopulation; seeded Forms for GET/edit. See `docs/decisions/0017`.
+- [x] **Auth** (`gap` 10, `0018`) — opt-in `auth` package: PBKDF2 password hashing, session-backed login/logout, current-user processor, route guards. User model stays app-owned per `0016`; password reset, verification, and rate limiting remain deferred.
 - [x] **Sessions + CSRF** (`gap` 4, `0013`) — server-side sessions by default (`session.NewStore(db)`, framework-owned `sessions` table, opaque id cookie, revocable, no global key) with a sealed-cookie escape hatch (`session.New`); CSRF tokens required on unsafe methods; on by default via `app.Config.Session`; `c.Session()` / `session.From(c)`, `{{.CSRF}}`.
 - [x] **Settings** (`gap` 13) — built: minimal env-based config convention (`settings` package: `DATABASE_URL`, `APP_ENV`/`DEV`, `PORT`).
 - [ ] **Default UI** (`0003`, `0010`) — architecture decided + `ui` scaffolded; component set and styling TBD.
@@ -49,8 +50,10 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 **Deferred means "not yet built," never "optional."** The nutrients among these
 (migrations, auth) are in scope (`0015`); this section orders work, it does not
 mark anything discretionary.
-- Auth/users (`gap` 10), admin/scaffold-gen (`gap` 15), i18n/jobs/mail (`gap` 17),
+- Admin/scaffold-gen (`gap` 15), i18n/jobs/mail (`gap` 17),
   tier-3 `{{render}}` boundary (`0007`), asset cache-busting (`gap` 11).
+  (Auth/users, `gap` 10, is now built as the opt-in `auth` package, `0018`;
+  reset/mailer/rate-limiting remain outside the first pass.)
   (Migrations **and the CLI** were deferred here; `0016` designs the migrations
   and both are now **pulled into v0.1** — `cozy migrate` first.)
 
