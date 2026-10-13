@@ -28,8 +28,8 @@ r.Get("/users/{id}", func(c *core.Context) core.Response {
 - **Opinionated, not configurable.** A good default you can opt out of, instead
   of a knob you have to set.
 - **Decides the 90%.** Routing, layouts and partials, a model-first data layer,
-  sessions and CSRF, an opt-in auth package, errors, logging, global context, and
-  a tiny opt-out UI.
+  sessions and CSRF, an opt-in auth package, one-shot flash messages, errors,
+  logging, global context, and a tiny opt-out UI.
 
 ## Data access
 
