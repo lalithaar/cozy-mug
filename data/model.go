@@ -367,8 +367,8 @@ func (m *modelDesc) columnValue(v reflect.Value, c *column) reflect.Value {
 }
 
 // ---------------------------------------------------------------------------
-// DDL (F7) — Go scalar -> dialect type, and a CREATE TABLE. Interim: powers
-// EnsureSchema until 0016's generated-migrations runner lands.
+// DDL (F7) — Go scalar -> dialect type, and a CREATE TABLE. Powers
+// `cozy migrate` files and Table[M].SchemaSQL(); never run at boot.
 // ---------------------------------------------------------------------------
 
 func scalarType(t reflect.Type, names map[reflect.Kind]string) string {

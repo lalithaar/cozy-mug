@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
+	"__MODULE__/handlers"
 	"github.com/lalithaar/cozy-mug/app"
 	"github.com/lalithaar/cozy-mug/data"
-	"__MODULE__/handlers"
 	"github.com/lalithaar/cozy-mug/funcs"
 	"github.com/lalithaar/cozy-mug/session"
 )
@@ -27,8 +27,17 @@ func newApp(t *testing.T) http.Handler {
 	t.Cleanup(func() { _ = db.Close() })
 
 	store := handlers.NewStore(db)
-	if err := store.EnsureSchema(ctx); err != nil {
+	stmts, err := db.Table[handlers.Note]().SchemaSQL()
+	if err != nil {
 		t.Fatalf("schema: %v", err)
+	}
+	for _, s := range stmts {
+		if _, err := db.ExecContext(ctx, s); err != nil {
+			t.Fatalf("schema: %v", err)
+		}
+	}
+	if err := store.Seed(ctx); err != nil {
+		t.Fatalf("seed: %v", err)
 	}
 
 	sessions, err := session.NewStore(db, session.Options{})

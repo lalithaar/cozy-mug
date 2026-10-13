@@ -66,8 +66,9 @@ raw parameterized SQL stays as the escape hatch.
 
 Early and **pre-release** — the API may change. Built: the core, the `app` glue,
 the model-first data layer, server-side sessions and CSRF, global view context,
-the optional template helpers, server-side forms, and the `cozy` CLI with project
-scaffolding and migrations. Deferred: settings, the UI component set, and auth.
+the optional template helpers, server-side forms, settings, and the `cozy` CLI
+with project scaffolding and migrations (schema via `cozy migrate`; `EnsureSchema`
+removed). Deferred: the UI component set and auth.
 A roadmap ships in the repository.
 
 ## Layout
@@ -98,9 +99,10 @@ myapp/
 
 ## Try it
 
-From a clone of this repository:
+From a clone of this repository (apply migrations first):
 
 ```
+go run ./cmd/cozy migrate up --dir examples/app/migrations
 go run ./examples/app      # http://localhost:8080 (SQLite; creates notes.db)
 ```
 

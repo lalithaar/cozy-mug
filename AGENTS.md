@@ -41,10 +41,12 @@ sessions except these files. Rules:
 
 ## Opinion ledger
 Firm opinions live in `docs/decisions/`. Project status:
-**decided and built through the model-first data layer, sessions/CSRF and global
-context / processors; the remaining v0.1 work is forms (next focus), the
-migrations CLI (pulled into v0.1), settings, UI, docs, and the testing
-convention. Nothing is undecided; deferred items live in `docs/roadmap.md`.**
+**decided and built through the model-first data layer (schema now only via
+`cozy migrate`; `EnsureSchema` removed), sessions/CSRF, global context/
+processors, forms, the `cozy` CLI (`new` + `migrate`), and settings; the
+remaining v0.1 work is the Default UI component set/styling, getting-started/
+docs polish, and the testing convention. Nothing is undecided; deferred items live
+in `docs/roadmap.md`.**
 
 ### Firm
 - **The goal is Django/Rails-caliber DX for a secure SSR app; frugality is the

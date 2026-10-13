@@ -32,14 +32,12 @@ func main() {
 	db := core.Must(data.Open(ctx, dsn))
 	defer db.Close()
 
-	// Schema comes from the model (0016): EnsureSchema creates tables + indexes,
-// idempotently (IF NOT EXISTS). It is the interim boot-time creator — real
-// deployments replace it with the generated-migrations runner (cozy migrate:
-// reviewable per-dialect artifacts, explicit step, never at boot).
-store := handlers.NewStore(db)
-if err := store.EnsureSchema(ctx); err != nil {
-	log.Fatal(err)
-}
+	store := handlers.NewStore(db)
+	// Schema is managed by migrations (cozy migrate), never by the app at boot
+	// (0016). Seed only fills demo rows; it expects the tables to already exist.
+	if err := store.Seed(ctx); err != nil {
+		log.Fatal(err)
+	}
 
 	// Sessions + CSRF, kept server-side in the database (ADR 0013): the cookie
 	// holds only an opaque id, so sessions are revocable and there is no global

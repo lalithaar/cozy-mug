@@ -49,14 +49,10 @@ type Store struct {
 
 func NewStore(db *data.DB) *Store { return &Store{db: db} }
 
-// EnsureSchema creates the table if missing and seeds a couple of notes. An app
-// with migrations would run them here instead; EnsureSchema is the interim
-// boot-time convenience until 0016's generated-migrations runner lands.
-func (s *Store) EnsureSchema(ctx context.Context) error {
-	if err := s.db.Table[Note]().EnsureSchema(ctx); err != nil {
-		return err
-	}
-
+// Seed inserts the example's demo notes when the notes table is empty. It
+// assumes the table already exists — schema comes from the app's migrations
+// (cozy migrate), not from boot (0016). Call it after applying migrations.
+func (s *Store) Seed(ctx context.Context) error {
 	n, err := s.db.Table[Note]().Count(ctx)
 	if err != nil {
 		return err

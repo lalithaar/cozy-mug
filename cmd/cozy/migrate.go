@@ -14,9 +14,9 @@ import (
 )
 
 type migrateFlags struct {
-	db    string
-	dir   string
-	dsn   string
+	db  string
+	dir string
+	dsn string
 }
 
 func defaultDSN() string {
@@ -72,8 +72,10 @@ func migrateUp(args []string) error {
 	if err != nil {
 		return err
 	}
-	if len(rest) > 0 {
-		return fmt.Errorf("unexpected arguments: %v", rest)
+	for _, r := range rest {
+		if r != "up" {
+			return fmt.Errorf("unexpected arguments: %v", rest)
+		}
 	}
 
 	ctx := context.Background()
@@ -240,4 +242,3 @@ func sanitizeName(s string) string {
 }
 
 func timeNow() string { return time.Now().UTC().Format(time.RFC3339) }
-

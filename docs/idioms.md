@@ -142,9 +142,10 @@ func (s *Store) addNote(ctx context.Context, title, body string) (*Note, error) 
 - Relations are declared as `*Child` (belongs-to) / `[]*Child` (has-many) fields
   tagged `db:"ref:<fk-column>"`. They load **only when asked**, one extra query
   per relation: `.With(notes.Author)` — no lazy N+1. (`0016`)
-- Schema at boot: `Table[M]().EnsureSchema(ctx)` (IF NOT EXISTS) is the interim
-  creator; final word is generated, reviewable, per-dialect migration artifacts
-  applied by an explicit `cozy migrate` step — never at boot. (`0016`)
+- Schema at boot: none. `Table[M]().SchemaSQL()` exposes the model-derived DDL
+  for generators/tools/tests, but app tables arrive only through `cozy migrate`
+  (reviewable, per-dialect files under `migrations/<dialect>`). DB seeding
+  (`store.Seed`) is allowed; DDL at boot is not. (`0016`)
 - The raw escape hatch stays: `data.All`/`One`/`Exec`/`Tx` for a query a model
   can't express. args are always bound, never interpolated — and never as
   identifiers (`ORDER BY`, column name): pick from a fixed set. The DSN is a

@@ -217,23 +217,25 @@ func (t *Table[M]) exists(ctx context.Context, pk any) (bool, error) {
 	return true, nil
 }
 
-// EnsureSchema creates the table (and its index/unique columns) if missing.
-// Interim: 0016's generated, versioned migrations replace this on the next
-// slice; apps keep calling store logic at boot either way.
-func (t *Table[M]) EnsureSchema(ctx context.Context) error {
-	create, indexes, err := t.desc.DDL(t.db.Dialect())
+// DDL returns the CREATE TABLE statement and its index statements derived from
+// the model, for the connected dialect. It does NOT execute them: schema creation
+// is an explicit migration step (cozy migrate), never a boot-time side effect
+// (0016). Exposed for migration generation and for test setup only.
+func (t *Table[M]) DDL() (string, []string, error) {
+	return t.desc.DDL(t.db.Dialect())
+}
+
+// SchemaSQL returns the model-derived schema as runnable statements (CREATE TABLE
+// plus indexes), one per element, for the connected dialect.
+func (t *Table[M]) SchemaSQL() ([]string, error) {
+	create, indexes, err := t.DDL()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if _, err := t.db.sql.ExecContext(ctx, create); err != nil {
-		return fmt.Errorf("data: ensure schema: %w", err)
-	}
-	for _, idx := range indexes {
-		if _, err := t.db.sql.ExecContext(ctx, idx); err != nil {
-			return fmt.Errorf("data: ensure schema: %w", err)
-		}
-	}
-	return nil
+	out := make([]string, 0, 1+len(indexes))
+	out = append(out, create)
+	out = append(out, indexes...)
+	return out, nil
 }
 
 func intKind(t reflect.Type) bool {

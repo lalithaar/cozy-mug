@@ -76,13 +76,46 @@ func testDB(t *testing.T) *data.DB {
 		t.Fatalf("open: %v", err)
 	}
 	t.Cleanup(func() { db.Close() })
-	for _, fn := range []func(context.Context) error{
-		db.Table[Author]().EnsureSchema,
-		db.Table[Post]().EnsureSchema,
-		db.Table[Comment]().EnsureSchema,
+	for _, schema := range []func() error{
+		func() error {
+			stmts, err := db.Table[Author]().SchemaSQL()
+			if err != nil {
+				return err
+			}
+			for _, s := range stmts {
+				if _, err := db.ExecContext(context.Background(), s); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+		func() error {
+			stmts, err := db.Table[Post]().SchemaSQL()
+			if err != nil {
+				return err
+			}
+			for _, s := range stmts {
+				if _, err := db.ExecContext(context.Background(), s); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
+		func() error {
+			stmts, err := db.Table[Comment]().SchemaSQL()
+			if err != nil {
+				return err
+			}
+			for _, s := range stmts {
+				if _, err := db.ExecContext(context.Background(), s); err != nil {
+					return err
+				}
+			}
+			return nil
+		},
 	} {
-		if err := fn(context.Background()); err != nil {
-			t.Fatalf("ensure schema: %v", err)
+		if err := schema(); err != nil {
+			t.Fatalf("schema: %v", err)
 		}
 	}
 	return db

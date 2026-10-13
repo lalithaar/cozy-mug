@@ -21,25 +21,29 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 
 - [ ] **Project layout / scaffolding** (`gap` 1) — decided (`0009`): conventional dirs, handlers/, views/, static/. TODO: canonical example app at `examples/app` (built; polish + getting-started).
 - [x] **App glue** — `app` package (`0009`): `app.New(Config)` wires Logger -> Errors -> Session -> Processors -> Views -> CSRF -> Router, mounts static, exposes an `http.Handler`.
-- [ ] **Data access rework** (`gap` 8–9, `0016`, supersedes `0012`) — model-first: one struct derives schema + queries (generated tokens) + CRUD (whole-row, optimistic `.version` lock → `core.Conflict`) + relations (`*T`/`[]*T`, eager `With(...)`); auto timestamps; generated, reviewable per-dialect (sqlite/postgres) migration artifacts + an explicit `migrate` step. The `data` package was rebuilt (`db.Table[M]()` entry point, `data/C`+`data/R` tokens, `Query` pipe; `EnsureSchema` is the interim boot-time creator); verified on SQLite, example rewired, guarded by `data/model_test.go`. Remaining: the generated-migrations runner (CLI-invoked `cozy migrate`, firm; the CLI is pulled into v0.1) + a live Postgres test; `EnsureSchema` is removed when the runner lands (never coexists). The safe guards (parameterization, dialect inference, DSN scrubbing, secret rules) carried over.
-- [ ] **CLI** (`gap` 16) — **pulled into v0.1** (was deferred): `cozy migrate` invokes the generated-migrations runner (`0016`), so the CLI shell + the generated-artifact pipeline land with the data rework. Non-migration subcommands (generators/console, agent e2e `0002`) are sequenced after but share the binary.
+- [ ] **Data access rework** (`gap` 8–9, `0016`, supersedes `0012`) — model-first: one struct derives schema + queries (generated tokens) + CRUD (whole-row, optimistic `.version` lock → `core.Conflict`) + relations (`*T`/`[]*T`, eager `With(...)`); auto timestamps; reviewable per-dialect (sqlite/postgres) migration artifacts + an explicit `migrate` step. The `data` package was rebuilt (`db.Table[M]()` entry point, `data/C`+`data/R` tokens, `Query` pipe; app tables now come only from `cozy migrate`, `EnsureSchema` removed — `SchemaSQL` is the exported generator entry point for tools/tests); verified on SQLite, example rewired + seeded, guarded by `data/model_test.go`. Remaining: a model→migration *generator* (today `cozy migrate new` writes stubs you fill, or copy from `SchemaSQL`) + a live Postgres test. The safe guards (parameterization, dialect inference, DSN scrubbing, secret rules) carried over.
+- [x] **CLI** (`gap` 16) — built: `cozy new` scaffolds apps and `cozy migrate` (`up` + `migrate new`) applies reviewable per-dialect SQL (`migrations/<dialect>/*.sql`). Non-migration subcommands (generators/console, agent e2e `0002`) are sequenced after but share the binary.
 - [x] **Global context / processors** (`gap` 7, `0014`) — request-scoped values (`c.Set` / `{{.Values.name}}`) plus `app.Config.Processors` (`core.Processor`), run after sessions and before views; CSRF stays `{{.CSRF}}`. Example uses a processor for flash.
 - [x] **Forms** (`gap` 6) — `form` package: bind -> validate (tag rules + model hook) -> re-render-with-errors; raw repopulation; seeded Forms for GET/edit. See `docs/decisions/0017`.
 - [x] **Sessions + CSRF** (`gap` 4, `0013`) — server-side sessions by default (`session.NewStore(db)`, framework-owned `sessions` table, opaque id cookie, revocable, no global key) with a sealed-cookie escape hatch (`session.New`); CSRF tokens required on unsafe methods; on by default via `app.Config.Session`; `c.Session()` / `session.From(c)`, `{{.CSRF}}`.
-- [ ] **Settings** (`gap` 13) — minimal env-based config convention.
+- [x] **Settings** (`gap` 13) — built: minimal env-based config convention (`settings` package: `DATABASE_URL`, `APP_ENV`/`DEV`, `PORT`).
 - [ ] **Default UI** (`0003`, `0010`) — architecture decided + `ui` scaffolded; component set and styling TBD.
 - [x] **Template helpers** (`0006`, `0011`) — `funcs` package (opt-in): loop metadata + arithmetic + formatting (text/join/default/pluralize/comma/date/linebreaksbr) done; `super`/nesting idiom documented.
 - [ ] **Identity & docs** — module path now `github.com/lalithaar/cozy-mug` (`0009`); TODO: README + getting-started, and a tag with the new path.
 - [ ] **Testing convention** (`gap` 14) — documented `httptest` / test-client seam (agent CLI may slip).
 
 ### WIP / follow-ups (not release gates)
-- **Data-layer verification** (`0016`) — the guards carried from `0012`
-  (dialect detection, DSN redaction, `PRAGMA foreign_keys` enforcement) are
-  still unproven; a live Postgres integration test is env-gated (needs a
-  server/container). The model layer itself is SQLite-verified in
-  `data/model_test.go`.
-- **Supply chain** (`0001`, `0012`) — run `govulncheck` in CI and keep the two
-  drivers (`modernc.org/sqlite`, `pgx/v5`) current.
+- **Data-layer verification** (`0016`) — `EnsureSchema` removed from the app
+  path; schema now arrives via `cozy migrate` (app tables) / `SchemaSQL` for
+  tools+tests. The security guards carried from `0012` (dialect detection, DSN
+  redaction, `PRAGMA foreign_keys` enforcement) are still unproven by tests; a
+  live Postgres integration test is env-gated (needs a server/container). The
+  model layer itself is SQLite-verified in `data/model_test.go`.
+- **Supply chain** (`0001`, `0012`) — `.github/workflows/ci.yml` runs `go vet`,
+  `go test`, `go build`, and `govulncheck` (golang/govulncheck-action). Drivers
+  kept current (`modernc.org/sqlite v1.60.1`, `pgx/v5 v5.11.0`); `golang.org/x/text`
+  bumped to v0.39.0. Local toolchain is go1.27.1, which carries stdlib advisories
+  fixed in 1.27.2 — CI pins `go-version: "1.27"` (toolchain).
 
 ### Deferred past v0.1 — sequencing, not scope (reopening = ADR)
 **Deferred means "not yet built," never "optional."** The nutrients among these

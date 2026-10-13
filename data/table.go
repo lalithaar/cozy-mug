@@ -20,8 +20,7 @@ type Table[M any] struct {
 
 // Table binds model M to a DB handle. Descriptor errors (missing table tag, a
 // model-typed field without db:"ref:...") panic here — they are static model
-// mistakes and fail loud (0007; recreate at boot, so also exercised by any
-// EnsureSchema call at startup).
+// mistakes and fail loud (0007).
 func (db *DB) Table[M any]() *Table[M] {
 	desc, err := descFor(reflect.TypeOf((*M)(nil)).Elem())
 	if err != nil {
