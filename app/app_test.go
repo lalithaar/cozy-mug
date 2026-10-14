@@ -61,7 +61,7 @@ func TestUIMountsStylesheet(t *testing.T) {
 	}
 
 	rec := httptest.NewRecorder()
-	a.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/static/ui/inherent.min.css", nil))
+	a.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/static/ui/inherent.css", nil))
 	if rec.Code != http.StatusOK {
 		t.Fatalf("ui stylesheet: code=%d, want 200", rec.Code)
 	}

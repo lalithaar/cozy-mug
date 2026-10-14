@@ -80,7 +80,7 @@ func TestExampleRenders(t *testing.T) {
 		t.Fatalf("note: status %d", rec.Code)
 	}
 	body = rec.Body.String()
-	if !strings.Contains(body, `name="note-id"`) || !strings.Contains(body, "/static/ui/inherent.min.css") {
+	if !strings.Contains(body, `name="note-id"`) || !strings.Contains(body, "/static/ui/inherent.css") {
 		t.Errorf("note head did not extend the base (super):\n%s", body)
 	}
 

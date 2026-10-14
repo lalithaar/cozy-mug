@@ -27,7 +27,7 @@ func TestPropsRejectsOddCount(t *testing.T) {
 }
 
 func TestFSServesBaseCSS(t *testing.T) {
-	if _, err := fs.Stat(FS(), "inherent.min.css"); err != nil {
-		t.Fatalf("inherent.min.css not in ui.FS(): %v", err)
+	if _, err := fs.Stat(FS(), "inherent.css"); err != nil {
+		t.Fatalf("inherent.css not in ui.FS(): %v", err)
 	}
 }

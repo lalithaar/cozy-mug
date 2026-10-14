@@ -62,7 +62,7 @@ var templateFS embed.FS
 var components = template.Must(template.ParseFS(templateFS, "templates/*.html"))
 
 // FS returns the embedded stylesheet filesystem. The app glue mounts it at
-// /static/ui/, so the stylesheet is served at /static/ui/inherent.min.css.
+// /static/ui/, so the stylesheet is served at /static/ui/inherent.css.
 func FS() fs.FS {
 	sub, err := fs.Sub(staticFS, "static")
 	if err != nil {
