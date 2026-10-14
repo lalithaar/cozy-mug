@@ -36,15 +36,17 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 ### WIP / follow-ups (not release gates)
 - **Data-layer verification** (`0016`) — `EnsureSchema` removed from the app
   path; schema now arrives via `cozy migrate` (app tables) / `SchemaSQL` for
-  tools+tests. The security guards carried from `0012` (dialect detection, DSN
-  redaction, `PRAGMA foreign_keys` enforcement) are still unproven by tests; a
-  live Postgres integration test is env-gated (needs a server/container). The
-  model layer itself is SQLite-verified in `data/model_test.go`.
+  tools+tests. The security guards carried from `0012` are now covered by tests
+  (`data/security_internal_test.go`, `data/data_security_test.go`: dialect
+  detection, DSN/password redaction, SQLite `PRAGMA foreign_keys` enforcement).
+  The live Postgres integration test is env-gated and runs in CI's `postgres`
+  job (`TestPostgresDataLayer`); the model layer is also SQLite-verified in
+  `data/model_test.go`.
 - **Supply chain** (`0001`, `0012`) — `.github/workflows/ci.yml` runs `go vet`,
   `go test`, `go build`, and `govulncheck` (golang/govulncheck-action). Drivers
   kept current (`modernc.org/sqlite v1.60.1`, `pgx/v5 v5.11.0`); `golang.org/x/text`
   bumped to v0.39.0. Local toolchain is go1.27.1, which carries stdlib advisories
-  fixed in 1.27.2 — CI pins `go-version: "1.27"` (toolchain).
+  fixed in 1.27.2 — CI pins `go-version: "1.27.2"` (toolchain).
 
 ### Deferred past v0.1 — sequencing, not scope (reopening = ADR)
 **Deferred means "not yet built," never "optional."** The nutrients among these
