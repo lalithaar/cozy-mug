@@ -22,7 +22,7 @@ func main() {
 			fatal(err)
 		}
 	case "version", "--version", "-v":
-		fmt.Println("cozy 0.0.10")
+		fmt.Println("cozy 0.0.11")
 	default:
 		usage()
 		os.Exit(2)
