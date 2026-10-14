@@ -2,6 +2,7 @@ package ui
 
 import (
 	"io/fs"
+	"strings"
 	"testing"
 )
 
@@ -27,7 +28,11 @@ func TestPropsRejectsOddCount(t *testing.T) {
 }
 
 func TestFSServesBaseCSS(t *testing.T) {
-	if _, err := fs.Stat(FS(), "base.css"); err != nil {
+	b, err := fs.ReadFile(FS(), "base.css")
+	if err != nil {
 		t.Fatalf("base.css not in ui.FS(): %v", err)
+	}
+	if !strings.Contains(string(b), "Inherent.css") {
+		t.Fatalf("ui base stylesheet is not the vendored inherent.css")
 	}
 }

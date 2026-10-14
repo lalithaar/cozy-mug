@@ -32,8 +32,9 @@ type Props map[string]string
 // Funcs returns the template funcs exposing ui's components and helpers. The app
 // glue merges them into the app's FuncMap when Config.UI is set.
 //
-// The component set is not decided yet (ADR 0010); only the shared "props"
-// builder exists so far.
+// The base styling is inherent.css (a full semantic-HTML stylesheet), so views
+// need no class vocabulary of their own. "props" stays available as a
+// convenience; "button" remains as a small helper but is optional.
 func Funcs() template.FuncMap {
 	return template.FuncMap{
 		"props":  props,

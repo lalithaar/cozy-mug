@@ -28,7 +28,7 @@ The nucleus, for the record; **no adoption promise** (module path is still the
 - [x] **Auth** (`gap` 10, `0018`, `0019`) — opt-in `auth` package: PBKDF2 password hashing, session-backed login/logout, current-user processor, route guards, in-memory lockout, verified password change. User model stays app-owned per `0016`; password reset and verification remain mailer-blocked.
 - [x] **Sessions + CSRF** (`gap` 4, `0013`) — server-side sessions by default (`session.NewStore(db)`, framework-owned `sessions` table, opaque id cookie, revocable, no global key) with a sealed-cookie escape hatch (`session.New`); CSRF tokens required on unsafe methods; on by default via `app.Config.Session`; `c.Session()` / `session.From(c)`, `{{.CSRF}}`.
 - [x] **Settings** (`gap` 13) — built: minimal env-based config convention (`settings` package: `DATABASE_URL`, `APP_ENV`/`DEV`, `PORT`).
-- [ ] **Default UI** (`0003`, `0010`) — architecture decided + `ui` scaffolded; component set and styling TBD.
+- [x] **Default UI** (`0003`, `0010`) — architecture decided + `ui` scaffolded; styling now provided by a vendored copy of inherent.css (`ui/static/base.css`, served at `/static/ui/base.css`); semantic HTML is the component set, no extra component library needed.
 - [x] **Template helpers** (`0006`, `0011`) — `funcs` package (opt-in): loop metadata + arithmetic + formatting (text/join/default/pluralize/comma/date/linebreaksbr) done; `super`/nesting idiom documented.
 - [ ] **Identity & docs** — module path now `github.com/lalithaar/cozy-mug` (`0009`); TODO: README + getting-started, and a tag with the new path.
 - [ ] **Testing convention** (`gap` 14) — documented `httptest` / test-client seam (agent CLI may slip).

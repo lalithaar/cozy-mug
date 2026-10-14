@@ -70,7 +70,7 @@ the opt-in auth package, the model-first data layer (with the `cozy migrate new`
 model→SQL generator), server-side sessions and CSRF, global view context, the
 optional template helpers, server-side forms, settings, and the `cozy` CLI with
 project scaffolding and migrations (schema via `cozy migrate`; `EnsureSchema`
-removed). Deferred: the UI component set.
+removed). Deferred: the v0.1 polish items - getting-started, docs, and the testing convention.
 A roadmap ships in the repository.
 
 ## Layout

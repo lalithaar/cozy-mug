@@ -46,8 +46,8 @@ Firm opinions live in `docs/decisions/`. Project status:
 `EnsureSchema` removed), sessions/CSRF, global context/
 processors, forms, the `cozy` CLI (`new` + `migrate`), settings, and an opt-in
 auth package (`0018`: hashing, login/logout, current-user resolution, guards);
-remaining v0.1 work is the Default UI component set/styling, getting-started/
-docs polish, the testing convention, and a live Postgres data test. Auth depth
+remaining v0.1 work is getting-started/docs polish and the testing
+convention. Auth depth
 items (reset, verification, rate limiting) remain deferred. Nothing is
 undecided; deferred items live in `docs/roadmap.md`.**
 
