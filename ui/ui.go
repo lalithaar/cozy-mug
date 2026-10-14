@@ -14,8 +14,8 @@
 // Markup uses internal, namespaced "cm-*" classes; the public theming seam is the
 // "--cm-*" CSS variables.
 //
-// STATUS: scaffold. The architecture is decided; the component set and the
-// styling (colors, spacing, actual CSS) are intentionally NOT decided yet.
+// Base styling is provided by a vendored copy of inherent.css (ui/static/base.css),
+// served at /static/ui/base.css. The component set beyond `button` is still open.
 package ui
 
 import (
@@ -62,7 +62,7 @@ var templateFS embed.FS
 var components = template.Must(template.ParseFS(templateFS, "templates/*.html"))
 
 // FS returns the embedded stylesheet filesystem. The app glue mounts it at
-// /static/ui/, so the stylesheet is served at /static/ui/inherent.min.css.
+// /static/ui/, so the base stylesheet is served at /static/ui/base.css.
 func FS() fs.FS {
 	sub, err := fs.Sub(staticFS, "static")
 	if err != nil {
