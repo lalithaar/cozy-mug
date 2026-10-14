@@ -27,7 +27,7 @@ func main() {
 	// is read from the environment and is never logged (secrets heuristic).
 	dsn := os.Getenv("DATABASE_URL")
 	if dsn == "" {
-		dsn = "notes.db"
+		dsn = "app.db"
 	}
 	db := core.Must(data.Open(ctx, dsn))
 	defer db.Close()

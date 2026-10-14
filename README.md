@@ -105,7 +105,7 @@ From a clone of this repository (apply migrations first):
 
 ```
 go run ./cmd/cozy migrate up --dir examples/app/migrations
-go run ./examples/app      # http://localhost:8080 (SQLite; creates notes.db)
+go run ./examples/app      # http://localhost:8080 (SQLite; creates app.db)
 ```
 
 Set `DATABASE_URL` to a `postgres://…` URL to run the same app on Postgres.
