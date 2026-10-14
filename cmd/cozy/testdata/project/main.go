@@ -17,7 +17,7 @@ import (
 	"github.com/lalithaar/cozy-mug/session"
 )
 
-//go:embed views static
+//go:embed views all:static
 var assets embed.FS
 
 func main() {

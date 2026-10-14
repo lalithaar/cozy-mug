@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-//go:embed testdata/project
+//go:embed all:testdata/project
 var templateFS embed.FS
 
 func runNew(args []string) error {

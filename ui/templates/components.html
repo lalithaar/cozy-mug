@@ -1,0 +1,1 @@
+{{define "cm-button"}}<button class="cm-btn{{if .Variant}} cm-btn--{{.Variant}}{{end}}{{if .Class}} {{.Class}}{{end}}"{{range $k, $v := .Attrs}} {{$k}}="{{$v}}"{{end}}>{{.Label}}</button>{{end}}

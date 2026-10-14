@@ -36,7 +36,8 @@ type Props map[string]string
 // builder exists so far.
 func Funcs() template.FuncMap {
 	return template.FuncMap{
-		"props": props,
+		"props":  props,
+		"button": button,
 	}
 }
 
@@ -55,8 +56,13 @@ func props(pairs ...string) (Props, error) {
 //go:embed static
 var staticFS embed.FS
 
+//go:embed templates
+var templateFS embed.FS
+
+var components = template.Must(template.ParseFS(templateFS, "templates/*.html"))
+
 // FS returns the embedded stylesheet filesystem. The app glue mounts it at
-// /static/ui/, so the base stylesheet is served at /static/ui/base.css.
+// /static/ui/, so the stylesheet is served at /static/ui/inherent.min.css.
 func FS() fs.FS {
 	sub, err := fs.Sub(staticFS, "static")
 	if err != nil {
