@@ -45,7 +45,8 @@ s.db.Table[Note]().Create(c.R.Context(), &f.Value)
   use the identical template.
 - Invalid submissions re-render `422 Unprocessable Entity`. Success stays PRG:
   flash via session, then `core.Redirect(303, ...)`.
-- Files are not bound; use `c.R.FormFile`. DB/constraint errors are mapped
+- `*multipart.FileHeader` fields are bound automatically from the request (via
+  `r.FormFile`); other types still are not. DB/constraint errors are mapped
   manually with `AddError`, never auto-guessed.
 
 ## Because

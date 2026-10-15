@@ -67,4 +67,3 @@ func safeAttrName(s string) bool {
 	}
 	return true
 }
-

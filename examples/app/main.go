@@ -58,5 +58,7 @@ func main() {
 		Session:    sessions,                // sessions + CSRF, on by default
 		Processors: handlers.Processors(),   // flash (and future current-user) in every view
 	})
-	log.Fatal(a.ListenAndServe(":8080"))
+	if err := a.ListenAndServe(":8080"); err != nil {
+		log.Fatal(err)
+	}
 }

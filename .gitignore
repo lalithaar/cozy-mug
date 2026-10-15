@@ -3,6 +3,11 @@
 *.test
 *.out
 
+# Astro/Starlight docs site
+site/node_modules/
+site/dist/
+site/.astro/
+
 # Local SQLite databases (never commit data)
 *.db
 *.db-shm

@@ -7,17 +7,23 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"html/template"
 	"io/fs"
 	"log/slog"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/lalithaar/cozy-mug/core"
 	"github.com/lalithaar/cozy-mug/router"
 	"github.com/lalithaar/cozy-mug/session"
 	"github.com/lalithaar/cozy-mug/ui"
+	"github.com/lalithaar/cozy-mug/upload"
 	"github.com/lalithaar/cozy-mug/views"
 )
 
@@ -53,6 +59,12 @@ type Config struct {
 	// every view as {{.Values.name}} (gap 7). They run after sessions and before
 	// views, so a processor may read the session. Optional.
 	Processors []core.Processor
+
+	// Uploads, if set, is mounted as a file server at store.Prefix (default
+	// /uploads/) so stored upload keys are publicly addressable. The same
+	// instance should be handed to handlers for Save/Open. Optional.
+	// It must implement upload.PublicStore.
+	Uploads upload.PublicStore
 }
 
 // App is an assembled application. It is an http.Handler, so tests and the agent
@@ -109,6 +121,13 @@ func New(cfg Config) (*App, error) {
 	if staticFS, err := fs.Sub(cfg.Assets, "static"); err == nil {
 		r.StaticFS("/static/", staticFS)
 	}
+	if cfg.Uploads != nil {
+		prefix := cfg.Uploads.StoragePrefix()
+		if prefix == "" {
+			prefix = "/uploads/"
+		}
+		r.Mount(prefix, cfg.Uploads.Handler())
+	}
 	if cfg.Routes != nil {
 		cfg.Routes(r)
 	}
@@ -132,7 +151,51 @@ func (a *App) Router() *router.Router { return a.router }
 // ServeHTTP dispatches the request through the assembled router.
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) { a.router.ServeHTTP(w, r) }
 
-// ListenAndServe serves the app on addr.
+// ListenAndServe serves the app on addr with production-safe defaults: read and
+// header timeouts, a write deadline, an idle timeout, and graceful shutdown on
+// SIGINT/SIGTERM. Calling this blocks until the server stops.
 func (a *App) ListenAndServe(addr string) error {
-	return http.ListenAndServe(addr, a)
+	srv := a.server(addr)
+	errCh := make(chan error, 1)
+	go func() { errCh <- srv.ListenAndServe() }()
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	select {
+	case err := <-errCh:
+		if err != nil && err != http.ErrServerClosed {
+			return err
+		}
+		return nil
+	case <-ctx.Done():
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		return err
+	}
+	err := <-errCh
+	if err != nil && err != http.ErrServerClosed {
+		return err
+	}
+	return nil
 }
+
+// Server returns the *http.Server behind ListenAndServe so an app can tune
+// timeouts or call Shutdown itself. ServeHTTP still dispatches through the
+// assembled router.
+func (a *App) Server(addr string) *http.Server {
+	return &http.Server{
+		Addr:              addr,
+		Handler:           a,
+		ReadHeaderTimeout: 10 * time.Second,
+		ReadTimeout:       30 * time.Second,
+		WriteTimeout:      60 * time.Second,
+		IdleTimeout:       120 * time.Second,
+		MaxHeaderBytes:    1 << 20,
+	}
+}
+
+func (a *App) server(addr string) *http.Server { return a.Server(addr) }

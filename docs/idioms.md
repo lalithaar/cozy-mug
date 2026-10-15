@@ -310,3 +310,38 @@ func (s *Store) showUser(c *core.Context) core.Response {
 - The app is an `http.Handler`, so tests drive it with `httptest` (`a.ServeHTTP`).
 - `static/` is served at `/static/`; with `UI: true`, the `ui` stylesheet is at
   `/static/ui/base.css`. (`0009`, `0010`)
+
+## File uploads (`0021`)
+A model stores a storage key (string); bytes live in `upload.Local` (or another
+backend). A `*multipart.FileHeader` field is bound automatically by
+`form.Bind`.
+
+```go
+type Post struct {
+    data.Model `db:"posts"`
+    Photo      string                `db:"photo"`
+    PhotoFile  *multipart.FileHeader `db:"-" form:"photo" required:""`
+}
+
+store := upload.New("uploads", "/uploads/")
+
+func (s *Store) create(c *core.Context) core.Response {
+    f := form.Bind[Post](c)
+    if !f.Valid() {
+        ...
+    }
+    key, err := s.uploads.Save(c.R.Context(), c.R, "photo")
+    if err != nil {
+        f.AddError("photo", err.Error())
+        ...
+    }
+    f.Value.Photo = key
+    if err := s.db.Table[Post]().Create(c.R.Context(), &f.Value); err != nil {
+        ...
+    }
+    return core.Redirect(http.StatusSeeOther, "/")
+}
+```
+
+Mount the store in `app.Config{ Uploads: store }` so keys under the store's
+prefix are served without extra wiring.

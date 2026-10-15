@@ -181,6 +181,14 @@ func (rt *Router) StaticFS(prefix string, fsys fs.FS) {
 	rt.mount(prefix, http.FileServerFS(fsys))
 }
 
+// Mount attaches an arbitrary http.Handler under prefix, stripping the prefix
+// before dispatch (like Static/StaticFS). Use it for storage backends or any
+// handler that does not fit the core.Response value model; it is the escape
+// hatch at the routing layer (0004).
+func (rt *Router) Mount(prefix string, h http.Handler) {
+	rt.mount(prefix, h)
+}
+
 func (rt *Router) mount(prefix string, h http.Handler) {
 	if !strings.HasSuffix(prefix, "/") {
 		prefix += "/"

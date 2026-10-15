@@ -23,8 +23,8 @@ func TestSafeErrRedactsDSNAndPassword(t *testing.T) {
 
 func TestDetectDialect(t *testing.T) {
 	cases := []struct {
-		dsn   string
-		want  dialect
+		dsn    string
+		want   dialect
 		driver string
 	}{
 		{"postgres://u:p@localhost/db", dialectPostgres, "pgx"},

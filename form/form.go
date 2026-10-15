@@ -4,6 +4,7 @@ package form
 
 import (
 	"fmt"
+	"net/http"
 	"net/mail"
 	"net/url"
 	"reflect"
@@ -14,6 +15,11 @@ import (
 
 	"github.com/lalithaar/cozy-mug/core"
 )
+
+// MaxMultipartBytes caps how much of a multipart request form.Bind will parse
+// into memory/on disk. It defaults to 10 MiB; raise it (at boot) for apps that
+// accept larger uploads, and keep it in line with upload.Options.MaxBytes.
+var MaxMultipartBytes int64 = 10 << 20
 
 // Form is the request-bound view of a model value.
 type Form[T any] struct {
@@ -85,13 +91,34 @@ func BindOver[T any](c *core.Context, base *T) *Form[T] {
 func (f *Form[T]) bindRequest(c *core.Context) {
 	r := c.R
 	if strings.Contains(r.Header.Get("Content-Type"), "multipart/form-data") {
-		_ = r.ParseMultipartForm(32 << 20)
+		limit := MaxMultipartBytes
+		if limit <= 0 {
+			limit = 32 << 20
+		}
+		_ = r.ParseMultipartForm(limit)
 	} else {
 		_ = r.ParseForm()
 	}
 
 	for _, p := range plansFor[T]() {
-		if p.omit || p.isFileType {
+		if p.omit {
+			continue
+		}
+		if p.isFileType {
+			fv := reflect.ValueOf(&f.Value).Elem().FieldByIndex(p.idx)
+			if _, fh, err := r.FormFile(p.key); err == nil {
+				fv.Set(reflect.ValueOf(fh))
+				f.RawValues[p.key] = fh.Filename
+			} else {
+				fv.Set(reflect.Zero(fv.Type()))
+				f.RawValues[p.key] = ""
+				if err != http.ErrMissingFile {
+					if f.errs == nil {
+						f.errs = map[string][]string{}
+					}
+					f.errs[p.key] = append(f.errs[p.key], p.name+" is invalid")
+				}
+			}
 			continue
 		}
 		fv := reflect.ValueOf(&f.Value).Elem().FieldByIndex(p.idx)
@@ -128,10 +155,17 @@ func (f *Form[T]) Validate() bool {
 	}
 
 	for _, p := range plansFor[T]() {
-		if p.omit || p.isFileType {
+		if p.omit {
 			continue
 		}
 		fv := reflect.ValueOf(&f.Value).Elem().FieldByIndex(p.idx)
+		// file fields carry only "required" semantics; skip coercion rules.
+		if p.isFileType {
+			if rulesOf(p.tag).required && fv.IsZero() {
+				f.AddError(p.key, p.name+" is required")
+			}
+			continue
+		}
 		// skip tag rules if coercion already failed for this field
 		if len(f.errs[p.key]) > 0 {
 			continue
