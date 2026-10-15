@@ -59,3 +59,4 @@ Append-only. Newest at bottom. One line each: `date — what changed — why`.
 - 2026-10-15 - improved dev-mode error page (core/devErrorPage): styled system-color UI, request summary metadata, exception and stack sections; still dev-only with no CSS shipped in production. go test ./core green.
 - 2026-10-15 - centralized mascot in ui/static/cozy-mascot.png; example scaffold error pages and any UI-enabled app serve it at /static/ui/cozy-mascot.png; docs site favicon and splash hero image updated to mascot.
 - 2026-10-15 - replaced mascot with transparent PNG (cozy-mascot-removebg-preview -> ui/static/cozy-mascot.png), updated docs assets/favicon and rebuild.
+- 2026-10-15 - Logger now wraps http.ResponseWriter in a statusRecorder so escape-hatch handlers that write directly (including upload.PublicStore.Serve) report accurate statuses; prevents the documented status ambiguity. go test ./core green.

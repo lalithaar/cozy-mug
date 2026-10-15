@@ -39,15 +39,19 @@ func Logger(o Options) Middleware {
 	return func(next Handler) Handler {
 		return func(c *Context) Response {
 			id := newRequestID()
+			rec := &statusRecorder{ResponseWriter: c.W}
+			c.W = rec
 			if id != "" {
 				c.R = c.R.WithContext(context.WithValue(c.R.Context(), reqIDKey{}, id))
-				c.W.Header().Set("X-Request-Id", id)
+				rec.Header().Set("X-Request-Id", id)
 			}
 			start := time.Now()
 			resp := next(c)
 			status := http.StatusOK
 			if sc, ok := resp.(StatusCoder); ok {
 				status = sc.StatusCode()
+			} else if rec.wroteHeader {
+				status = rec.status
 			}
 			log.Info("request",
 				"method", c.Method(),
@@ -58,6 +62,37 @@ func Logger(o Options) Middleware {
 			)
 			return resp
 		}
+	}
+}
+
+// statusRecorder captures the status written through a handler that writes
+// directly instead of returning a Response. It keeps the Logger's recorded
+// status accurate for those escape-hatch handlers.
+type statusRecorder struct {
+	http.ResponseWriter
+	status     int
+	wroteHeader bool
+}
+
+func (r *statusRecorder) WriteHeader(code int) {
+	if !r.wroteHeader {
+		r.status = code
+		r.wroteHeader = true
+	}
+	r.ResponseWriter.WriteHeader(code)
+}
+
+func (r *statusRecorder) Write(b []byte) (int, error) {
+	if !r.wroteHeader {
+		r.status = http.StatusOK
+		r.wroteHeader = true
+	}
+	return r.ResponseWriter.Write(b)
+}
+
+func (r *statusRecorder) Flush() {
+	if f, ok := r.ResponseWriter.(http.Flusher); ok {
+		f.Flush()
 	}
 }
 

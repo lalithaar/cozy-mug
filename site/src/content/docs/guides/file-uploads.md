@@ -138,9 +138,7 @@ func (s *Store) download(c *core.Context) core.Response {
   original name is metadata.
 - For very large files, consider streaming to the backend before `form.Bind`
   parses the whole request.
-- Returning `nil` from a public handler after `store.Serve` is acceptable because
-  `Serve` writes the response directly.
-```
-
-But wait, handler contract returns Response; returning nil? Core.Handler expects Response, but can return nil? Errors middleware maybe panic? Let's check 0004 and context. In examples, handlers always return core.Response. Returning nil would cause nil dereference in ServeHTTP adapter likely. Need inspect router/core adapter.<|end|><|start|>Assistant to=shell<|channel|>analysis <|constrain|>xml<|message|><rfl:parameter name="command">
-grep -n "ServeHTTP\|resp.WriteTo\|\.WriteTo" core/*.go app/*.go router/*.go
+- Returning `nil` from a public handler after `store.Serve` is intentional:
+  `Serve` writes the headers and body directly, so returning another
+  `core.Response` would write a second status. `core.Handler.ServeHTTP`,
+  `core.Errors`, and `core.Logger` tolerate `nil`. `core.Logger` records the status captured by its request writer.
