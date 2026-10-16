@@ -65,3 +65,5 @@ Append-only. Newest at bottom. One line each: `date — what changed — why`.
 - 2026-10-15 - added an uth starter template (cozy new --template auth / --auth) wiring the opt-in auth package (app-owned User model, login/register/logout, current-user processor, migration) alongside example+minimal; Seed now populates notes. go test ./... green.
  
  - 2026-10-16 � rewrote docs/roadmap.md as release-criteria source of truth: v0.1 checklist updated with current build status, new "Post-v0.1 proposals" section added with 9 feature requests from the vault-app build (code generation, resourceful routing, dev auto-schema, default eager relations, seeds, form field partials, cozy console, test helpers, conventional auth wiring), each checked against existing implementation status and tagged with decision impact; execution plan phased so firm-decision reopens (0016 auto-schema) require ADR + sign-off.
+
+- 2026-10-16 - fixed infinite reload loop in devReloadScript (app/dev.go): sessionStorage is now updated with data.build before calling location.reload(); added TestDevReloadPlumbing in app/dev_test.go.

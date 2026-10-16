@@ -86,12 +86,12 @@ const devReloadScript = `(function(){
       var data = await res.json();
       var stored = null;
       try { stored = sessionStorage.getItem(key); } catch (e) {}
-      if (stored !== null && stored !== data.build) {
-        location.reload();
-        return;
-      }
-      if (stored === null) {
+      if (stored !== data.build) {
         try { sessionStorage.setItem(key, data.build); } catch (e) {}
+        if (stored !== null) {
+          location.reload();
+          return;
+        }
       }
     } catch (e) {}
   }

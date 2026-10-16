@@ -75,7 +75,7 @@ func main() {
 	a := app.Must(app.Config{
 		Assets:     assets,
 		Routes:     store.Register,
-		Dev:        os.Getenv("DEV") != "0",
+		Dev:        os.Getenv("DEV") == "1",
 		UI:         true,
 		Funcs:      funcs.Funcs(),
 		Session:    sessions,
