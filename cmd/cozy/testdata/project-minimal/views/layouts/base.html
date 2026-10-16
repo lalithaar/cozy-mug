@@ -1,0 +1,10 @@
+{{define "base"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{block "title" .}}cozy{{end}}</title>
+<link rel="stylesheet" href="/static/ui/base.css">
+</head>
+<body>{{block "content" .}}{{end}}</body>
+</html>
+{{end}}

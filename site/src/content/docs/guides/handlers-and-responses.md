@@ -1,29 +1,36 @@
 ---
 title: "Handlers and responses"
-description: "Handler contract and core.Response values."
+description: "Value-returning handlers and the Response contract."
 ---
 
+Handlers return a value instead of writing directly:
 
-Status: draft.
+```go
+func (s *Store) showNote(c *core.Context) core.Response {
+    id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+    if err != nil {
+        return c.Error(core.NotFound(err))
+    }
+    n, err := s.noteByID(c.R.Context(), id)
+    if err != nil {
+        return c.Error(err)
+    }
+    return c.Render(http.StatusOK, "notes/show", &noteView{Note: n})
+}
+```
 
-## Overview
+## Responses
 
-Document the purpose of this page and the problem it solves.
+- `c.Render(status, "view", data)` renders a view into a buffer, then returns it.
+- `core.String(status, body)` is an HTML response.
+- `core.Text(status, body)` is plain text.
+- `core.Redirect(status, url)` redirects.
+- `core.Error(code, msg)` is a minimal error response.
 
-## Prerequisites
+Rendering happens in a buffer, so a template error yields a complete response,
+never a half-written page.
 
-- List required concepts and setup.
+## Raw http.Handler
 
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+For endpoints that do not fit the value model (storage downloads, probes),
+use `r.Mount` with an `http.Handler`.

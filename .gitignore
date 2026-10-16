@@ -15,3 +15,6 @@ site/.astro/
 *.sqlite
 *.sqlite3
 
+# Scratch work (vault app demo + docs site) — not part of the framework
+tmp/
+

@@ -1,29 +1,15 @@
 ---
 title: "Testing"
-description: "Test handlers, views, and requests in process."
+description: "Test handlers and apps in-process."
 ---
 
+Apps implement `http.Handler`, so you can use `httptest` directly.
 
-Status: draft.
+```go
+a := app.Must(app.Config{Assets: assets, Routes: store.Register, Dev: true})
+rec := httptest.NewRecorder()
+a.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+```
 
-## Overview
-
-Document the purpose of this page and the problem it solves.
-
-## Prerequisites
-
-- List required concepts and setup.
-
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+Inject a test database with `data.Open(ctx, ":memory:")` and
+`SchemaSQL`. For CSRF, capture the session cookie on the GET and submit it again.

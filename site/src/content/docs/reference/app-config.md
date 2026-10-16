@@ -1,29 +1,27 @@
 ---
 title: "app.Config"
-description: "Assemble an application."
+description: "Assemble and run a cozy-mug app."
 ---
 
+`app.New(cfg)` and `app.Must(cfg)` assemble the app.
 
-Status: draft.
+## Key fields
 
-## Overview
+| Field | Purpose |
+| --- | --- |
+| `Assets` | Embedded `views/` and `static/` (required). |
+| `Routes` | Registers routes (`func(*router.Router)`). |
+| `Dev` | Verbose error pages and dev reload injection. |
+| `Logger` | Request logger (`*slog.Logger`, nil uses default). |
+| `UI` | Opt into the `ui` component library. |
+| `Funcs` | Extra template functions. |
+| `Session` | Session/CSRF store (`nil` disables). |
+| `Processors` | Request-scoped global values. |
+| `Uploads` | Optional upload store. |
 
-Document the purpose of this page and the problem it solves.
+## Run
 
-## Prerequisites
-
-- List required concepts and setup.
-
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+```go
+app.ListenAndServe(":8080")   // timeouts + graceful shutdown
+app.Server(":8080")          // tune the *http.Server
+```

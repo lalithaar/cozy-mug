@@ -1,29 +1,43 @@
 ---
 title: "Routing"
-description: "Routes, params, groups, middleware, named routes."
+description: "Named routes, groups, middleware, and reverse URLs."
 ---
 
+cozy-mug wraps `net/http`'s `ServeMux`.
 
-Status: draft.
+## Basic routes
 
-## Overview
+```go
+r.Get("/", s.home).As("home")
+r.Post("/notes", s.createNote).As("notes.create")
+r.Get("/notes/{id}", s.showNote).As("note")
+```
 
-Document the purpose of this page and the problem it solves.
+## Reverse URLs in handlers and templates
 
-## Prerequisites
+Handlers access `c.URL("name", map[string]string{...})`. Templates get
+`{{.URL "name" "id" .ID}}` via `core.Globals`.
 
-- List required concepts and setup.
+## Groups and middleware
 
-## Steps
+```go
+notes := r.Group("/notes")
+notes.Use(withExampleHeader)
+notes.Get("/{id}", s.showNote)
+```
 
-1. First step.
-2. Second step.
-3. Verify the result.
+Middleware order runs as registered; the first added is outermost.
 
-## Details
+## Static files
 
-Explain behavior, options, edge cases, and constraints.
+```go
+r.Static("/static/", "static")
+r.StaticFS("/static/", staticFS)
+r.Mount("/uploads/", store.Handler())
+```
 
-## Related
+## 404 handling
 
-- Link to relevant guides and reference pages.
+```go
+r.NotFound(notFound)
+```

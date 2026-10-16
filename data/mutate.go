@@ -238,6 +238,28 @@ func (t *Table[M]) SchemaSQL() ([]string, error) {
 	return out, nil
 }
 
+// SchemaSQLFor is the non-generic entry point: it returns the model-derived
+// schema for a model value (pointer to a struct embedding data.Model), used by
+// tools and the dev-only auto-schema path. model must be a pointer to a struct.
+func SchemaSQLFor(db *DB, model any) ([]string, error) {
+	t := reflect.TypeOf(model)
+	if t == nil || t.Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("data: SchemaSQLFor requires a non-nil pointer to a struct, got %T", model)
+	}
+	desc, err := descFor(t.Elem())
+	if err != nil {
+		return nil, err
+	}
+	create, indexes, err := desc.DDL(db.Dialect())
+	if err != nil {
+		return nil, err
+	}
+	out := make([]string, 0, 1+len(indexes))
+	out = append(out, create)
+	out = append(out, indexes...)
+	return out, nil
+}
+
 func intKind(t reflect.Type) bool {
 	k := t.Kind()
 	return k >= reflect.Int && k <= reflect.Int64

@@ -1,29 +1,11 @@
 ---
 title: "session package"
-description: "Stores, options, CSRF."
+description: "Server-side sessions and CSRF stores."
 ---
 
+- `session.NewStore(db, session.Options{Secure})` (server-side).
+- `session.New(session.Options{Key})` (sealed cookie).
+- `session.From(c)` reads the request session.
+- `Store.Middleware` and `Store.CSRFMiddleware` wire load/persist and enforcement.
 
-Status: draft.
-
-## Overview
-
-Document the purpose of this page and the problem it solves.
-
-## Prerequisites
-
-- List required concepts and setup.
-
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+Tokens are accessed implicitly through `{{.CSRF}}` and the `X-CSRF-Token` header.

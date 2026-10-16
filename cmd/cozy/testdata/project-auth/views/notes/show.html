@@ -1,0 +1,9 @@
+{{define "title"}}{{.Note.Title}} - cozy-mug{{end}}
+{{define "head"}}{{template "layout-head" .}}<meta name="note-id" content="{{.Note.ID}}">{{end}}
+{{define "content"}}
+<article>
+  <h1>{{.Note.Title}}</h1>
+  <p class="body">{{linebreaksbr .Note.Body}}</p>
+  <p><a href="{{.URL "home"}}">Back</a></p>
+</article>
+{{end}}

@@ -1,29 +1,34 @@
 ---
 title: "Views and templates"
-description: "html/template layouts, partials, helpers, and rendering."
+description: "Block layouts, partials, and buffered rendering."
 ---
 
+cozy-mug uses standard `html/template` (auto-escaping). Layouts define blocks,
+views override them.
 
-Status: draft.
+## Convention
 
-## Overview
+- `views/layouts/` holds shared layouts.
+- `views/partials/` holds partials.
+- Every other `*.html` is a view.
 
-Document the purpose of this page and the problem it solves.
+`c.Render(status, "home", data)` fills an embedded `Globals` field
+automatically, so templates can build reverse URLs with `{{.URL}}`.
 
-## Prerequisites
+## Partials
 
-- List required concepts and setup.
+Factor shared regions into partials and call them directly:
 
-## Steps
+```html
+{{template "note-body" $n}}
+```
 
-1. First step.
-2. Second step.
-3. Verify the result.
+## Template helpers
 
-## Details
+Opt in with `Config.Funcs`. The `funcs` package adds loop metadata, arithmetic,
+pluralization, and formatting. See `funcs/funcs.go` for the full list.
 
-Explain behavior, options, edge cases, and constraints.
+## Dev reload
 
-## Related
-
-- Link to relevant guides and reference pages.
+In development, cozy-mug injects a script that polls `/__cozy/dev-build` and
+reloads the browser when the server restarts.

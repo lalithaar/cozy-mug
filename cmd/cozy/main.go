@@ -21,6 +21,18 @@ func main() {
 		if err := runMigrate(os.Args[2:]); err != nil {
 			fatal(err)
 		}
+	case "seed":
+		if err := runSeed(os.Args[2:]); err != nil {
+			fatal(err)
+		}
+	case "console":
+		if err := runConsole(os.Args[2:]); err != nil {
+			fatal(err)
+		}
+	case "dev":
+		if err := runDev(os.Args[2:]); err != nil {
+			fatal(err)
+		}
 	case "version", "--version", "-v":
 		fmt.Println("cozy 0.0.11")
 	default:
@@ -31,8 +43,11 @@ func main() {
 
 func usage() {
 	fmt.Fprintln(os.Stderr, "usage: cozy <new|migrate<|start|>version> [args]")
-	fmt.Fprintln(os.Stderr, "  cozy new <name> [--dir DIR]            scaffold a new app")
+	fmt.Fprintln(os.Stderr, "  cozy new <name> [--dir DIR] [--template example|minimal] [--git]")
 	fmt.Fprintln(os.Stderr, "  cozy migrate [new <name> [source-dir]|up]  apply migrations (default: up)")
+	fmt.Fprintln(os.Stderr, "  cozy seed                                 apply idempotent seed SQL from seeds/")
+	fmt.Fprintln(os.Stderr, "  cozy console                              database + routes REPL")
+	fmt.Fprintln(os.Stderr, "  cozy dev [--dir DIR] [--port PORT]    build/restart/refresh dev loop")
 	fmt.Fprintln(os.Stderr, "  cozy version                           print the version")
 }
 

@@ -1,29 +1,34 @@
 ---
 title: "Forms"
-description: "Bind, validate, and re-render forms with errors."
+description: "Bind, validate, and re-render with errors."
 ---
 
+Forms are bound from models.
 
-Status: draft.
+## Bind
 
-## Overview
+```go
+f := form.Bind[Note](c)
+if !f.Valid() {
+    return c.Render(http.StatusUnprocessableEntity, "home", &homeView{Form: f})
+}
+n := f.Value
+```
 
-Document the purpose of this page and the problem it solves.
+## Validation tags
 
-## Prerequisites
+Use struct tags such as `required:""`, `min:"3"`, `email:""`, and `max:""`.
+`form.Bind` validates automatically.
 
-- List required concepts and setup.
+## Repopulation
 
-## Steps
+Templates read submitted values while invalid:
 
-1. First step.
-2. Second step.
-3. Verify the result.
+```html
+<input name="title" value="{{with .Form}}{{.Raw "title"}}{{end}}">
+```
 
-## Details
+## File fields
 
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+`*multipart.FileHeader` fields are auto-bound when binding uses `BindMultipart`
+or `Bind` in a multipart request. Save them through `upload.Local`.

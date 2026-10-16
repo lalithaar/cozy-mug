@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"html/template"
 	"reflect"
+	"strings"
 )
 
 // Funcs returns the library's template functions.
@@ -42,6 +43,7 @@ func Funcs() template.FuncMap {
 		"comma":         comma,
 		"date":          date,
 		"linebreaksbr":  linebreaksbr,
+		"field":         field,
 	}
 }
 
@@ -92,4 +94,36 @@ func count(s any) (int, error) {
 		return rv.Len(), nil
 	}
 	return 0, fmt.Errorf("funcs: cannot take the length of %T", s)
+}
+
+// field renders a form field: a label, a text input, and any error messages.
+// Usage:
+//
+//	{{field "name" (index .Form.RawValues "name") "Name" (index .Form.Errors "name")...}}
+//
+// Errors are optional; pass zero or more strings after the label.
+func field(name, value, label string, errors ...string) (template.HTML, error) {
+	var b strings.Builder
+	b.WriteString(`<div class="field">`)
+	if label != "" {
+		b.WriteString(`<label for="` + htmlEscape(name) + `">` + htmlEscape(label) + `</label>`)
+	}
+	b.WriteString(`<input id="` + htmlEscape(name) + `" name="` + htmlEscape(name) + `" type="text" value="` + htmlEscape(value) + `">`)
+	for _, e := range errors {
+		if e != "" {
+			b.WriteString(`<p class="error">` + htmlEscape(e) + `</p>`)
+		}
+	}
+	b.WriteString(`</div>`)
+	return template.HTML(b.String()), nil
+}
+
+func htmlEscape(s string) string {
+	return strings.NewReplacer(
+		"&", "&amp;",
+		"<", "&lt;",
+		">", "&gt;",
+		"\"", "&quot;",
+		"'", "&#39;",
+	).Replace(s)
 }

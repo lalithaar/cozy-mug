@@ -1,29 +1,20 @@
 ---
 title: "Migrations"
-description: "Generate and apply database migrations."
+description: "Generate, review, and apply SQL migrations."
 ---
 
+cozy-mug never changes schema at boot. Generate a migration from your models:
 
-Status: draft.
+```bash
+cozy migrate new init .
+```
 
-## Overview
+This writes `migrations/sqlite/0001_init.sql` and the Postgres variant. Review
+the SQL, then apply:
 
-Document the purpose of this page and the problem it solves.
+```bash
+cozy migrate up
+```
 
-## Prerequisites
-
-- List required concepts and setup.
-
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+`cozy migrate up` records applied files in `schema_migrations`. Raw SQL is
+allowed, so destructive changes remain explicit and reviewable.

@@ -1,29 +1,45 @@
 ---
 title: "Sessions and CSRF"
-description: "Server-side sessions and CSRF protection."
+description: "Server-side sessions and CSRF protection, on by default."
 ---
 
+cozy-mug ships server-side sessions. The cookie holds only an opaque id; a
+small JSON map lives in a framework-owned `sessions` table. That makes sessions
+revocable and removes the need for a global secret.
 
-Status: draft.
+## Wiring
 
-## Overview
+```go
+sessions := core.Must(session.NewStore(db, session.Options{
+    Secure: os.Getenv("DEV") == "0",
+}))
+core.Must(sessions.EnsureSchema(ctx))
 
-Document the purpose of this page and the problem it solves.
+a := app.Must(app.Config{
+    Session: sessions,
+})
+```
 
-## Prerequisites
+## Reading a session
 
-- List required concepts and setup.
+```go
+sess := session.From(c)
+sess.Set("flash", "Note added.")
+msg := sess.GetString("flash")
+```
 
-## Steps
+## CSRF
 
-1. First step.
-2. Second step.
-3. Verify the result.
+Unsafe methods require a token in form field `csrf` or header `X-CSRF-Token`.
+Render it with:
 
-## Details
+```html
+{{.CSRF}}
+```
 
-Explain behavior, options, edge cases, and constraints.
+The token is compared in constant time.
 
-## Related
+## Sealed-cookie store
 
-- Link to relevant guides and reference pages.
+Use `session.New(session.Options{Key: key})` when you prefer stateless cookies.
+This requires a 32-byte key from `SESSION_KEY`.

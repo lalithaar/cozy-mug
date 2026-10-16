@@ -1,29 +1,21 @@
 ---
 title: "Deployment"
-description: "Run and deploy a cozy-mug app."
+description: "Build and run a cozy-mug app in production."
 ---
 
+Build the binary:
 
-Status: draft.
+```bash
+go build -o app .
+```
 
-## Overview
+Set `APP_ENV=production` (or `DEV=0`) to disable dev pages and secure cookies.
+Set `DATABASE_URL` for your database. Put the binary behind TLS and a reverse
+proxy. `app.ListenAndServe` sets read/header/write/idle timeouts and graceful
+shutdown.
 
-Document the purpose of this page and the problem it solves.
+Run migrations before starting the new binary:
 
-## Prerequisites
-
-- List required concepts and setup.
-
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+```bash
+cozy migrate up
+```

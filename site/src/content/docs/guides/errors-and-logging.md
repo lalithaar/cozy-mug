@@ -1,29 +1,32 @@
 ---
 title: "Errors and logging"
-description: "Three error tiers and request logging."
+description: "Tiered errors, one boundary, request logging."
 ---
 
+cozy-mug recovers panics and renders an error page for you. In development it
+shows status, message, stack, and request id. In production it renders
+`views/errors/<status>.html` and hides causes.
 
-Status: draft.
+## Returning errors
 
-## Overview
+Loaders return errors. Handlers convert them:
 
-Document the purpose of this page and the problem it solves.
+```go
+n, err := s.noteByID(c.R.Context(), id)
+if err != nil {
+    return c.Error(err)
+}
+```
 
-## Prerequisites
+`core.NotFound`, `core.Conflict`, and `core.HTTPError` carry status codes.
 
-- List required concepts and setup.
+## Logging
 
-## Steps
+`core.Logger` wraps the writer with a status recorder and logs one line per
+request: method, path, status, duration, and request id. It also sends
+`X-Request-Id`.
 
-1. First step.
-2. Second step.
-3. Verify the result.
+## Dev pages
 
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+Dev pages are styled with system colors and show the request summary, exception,
+and stack. They exist only when `Config.Dev` is true.

@@ -1,28 +1,45 @@
 ---
 title: "Project structure"
-description: "Conventional app layout and generated files."
+description: "The conventional layout of a cozy-mug app."
 ---
 
-Status: draft.
+An app follows a small, fixed layout that the `app` package assembles for you.
 
-## Overview
+## Files and folders
 
-Document the purpose of this page and the problem it solves.
+```text
+myapp/
+  main.go        # tiny: build the app, run it
+  handlers/      # handlers, loaders, and view models
+  views/         # templates: layouts/, partials/, errors/
+  static/        # assets, served under /static/
+  migrations/    # generated SQL artifacts (optional, for data apps)
+  go.mod
+```
 
-## Prerequisites
+## What each part does
 
-- List required concepts and setup.
+- **`main.go`** opens the database, creates a session store, and calls `app.Must`.
+- **`handlers/`** contains feature code. Each handler has the signature
+  `func(*core.Context) core.Response`. Loaders are plain Go functions that return
+  `(value, error)`.
+- **`views/`** uses Go `html/template` layouts and partials. Files under `layouts/`
+  and `partials/` are shared; every other `*.html` file is a view.
+- **`static/`** is mounted at `/static/` when present.
+- **`migrations/`** holds SQL artifacts produced by `cozy migrate new` and applied
+  by `cozy migrate up`.
 
-## Steps
+## Environment
 
-1. First step.
-2. Second step.
-3. Verify the result.
+Configuration is environment-based (12-factor). The important variables are:
 
-## Details
+- `DATABASE_URL` (defaults to `app.db`).
+- `APP_ENV=production` or `DEV=0` (disables dev mode and secure cookies off).
+- `PORT` (defaults to `8080`).
+- `SESSION_KEY` (base64, 32 bytes, only for the sealed-cookie store).
 
-Explain behavior, options, edge cases, and constraints.
+## Keep it small
 
-## Related
-
-- Link to relevant guides and reference pages.
+Core never depends on the optional `ui`, `funcs`, or auth packages. You opt in by
+importing them and wiring them in `app.Config`.
+```<|end|><|start|>write to=assistant<|channel|>analysis<|message|>Wrote file successfully: site/src/content/docs/getting-started/project-structure.md

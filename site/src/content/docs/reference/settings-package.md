@@ -1,29 +1,7 @@
 ---
 title: "settings package"
-description: "Environment-based configuration."
+description: "Minimal environment-based configuration."
 ---
 
-
-Status: draft.
-
-## Overview
-
-Document the purpose of this page and the problem it solves.
-
-## Prerequisites
-
-- List required concepts and setup.
-
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+`settings.Load()` reads `DATABASE_URL`, `APP_ENV`/`DEV`, and `PORT`. Defaults
+make a fresh app run with zero config. There is no config file by design.

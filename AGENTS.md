@@ -44,7 +44,7 @@ Firm opinions live in `docs/decisions/`. Project status:
 **decided and built through the model-first data layer (schema now only via
 `cozy migrate` — including the `cozy migrate new` model→SQL generator;
 `EnsureSchema` removed), sessions/CSRF, global context/
-processors, forms, the `cozy` CLI (`new` + `migrate`), settings, and an opt-in
+processors, forms, the `cozy` CLI (`new` + `migrate` + `dev`), settings, and an opt-in
 auth package (`0018`: hashing, login/logout, current-user resolution, guards);
 remaining v0.1 work is getting-started/docs polish and the testing
 convention. Auth depth
