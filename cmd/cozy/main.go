@@ -43,7 +43,7 @@ func main() {
 
 func usage() {
 	fmt.Fprintln(os.Stderr, "usage: cozy <new|migrate<|start|>version> [args]")
-	fmt.Fprintln(os.Stderr, "  cozy new <name> [--dir DIR] [--template example|minimal] [--git]")
+	fmt.Fprintln(os.Stderr, "  cozy new <name> [--dir DIR] [--template example|minimal|auth|polls] [--db sqlite|postgres] [--git]")
 	fmt.Fprintln(os.Stderr, "  cozy migrate [new <name> [source-dir]|up]  apply migrations (default: up)")
 	fmt.Fprintln(os.Stderr, "  cozy seed                                 apply idempotent seed SQL from seeds/")
 	fmt.Fprintln(os.Stderr, "  cozy console                              database + routes REPL")
