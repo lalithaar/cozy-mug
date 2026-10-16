@@ -1,29 +1,24 @@
 ---
 title: "core package"
-description: "Context, Response, Handler, errors."
+description: "Request context, responses, errors, and logging."
 ---
 
+## Context
 
-Status: draft.
+`core.Context` carries `W`, `R`, `Router`, `Views`, and request-scoped values.
+Methods include `Render`, `Error`, `Param`, `Query`, `Form`, `Set`, `Global`.
 
-## Overview
+## Responses
 
-Document the purpose of this page and the problem it solves.
+- `core.String(status, body)`
+- `core.Text(status, body)`
+- `core.Redirect(status, url)`
+- `core.Error(code, msg)`
+- `core.Status(code)`
 
-## Prerequisites
+## Errors and middleware
 
-- List required concepts and setup.
-
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+- `core.Errors(core.Options)` recovers panics and renders error pages.
+- `core.Logger(core.Options)` assigns request ids and logs one line.
+- `core.Processors(...)` installs global value processors.
+- `core.HTTPError`, `core.NotFound`, `core.Conflict` carry status codes.

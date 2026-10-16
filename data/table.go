@@ -82,6 +82,22 @@ func (q *Query[M]) clone() *Query[M] {
 	return &Query[M]{t: q.t, preds: q.preds, sorts: q.sorts, limit: q.limit, offset: q.offset, withs: q.withs}
 }
 
+// defaultWiths returns the relations to eager-load. When the caller specified
+// .With(...) they take full control; otherwise every declared belongs-to (*Child)
+// relation is returned for batch loading (P4).
+func (q *Query[M]) defaultWiths() []Rel {
+	if len(q.withs) > 0 {
+		return q.withs
+	}
+	var out []Rel
+	for field, rel := range q.t.desc.rels {
+		if !rel.isMany {
+			out = append(out, R[M](field))
+		}
+	}
+	return out
+}
+
 // All returns every matching row (empty, non-nil slice when none) with any
 // requested relations loaded.
 func (q *Query[M]) All(ctx context.Context) ([]M, error) {
@@ -110,7 +126,12 @@ func (q *Query[M]) All(ctx context.Context) ([]M, error) {
 	// Release the query connection before relation loading runs its own queries
 	// (the pool is capped at 1 for SQLite).
 	rows.Close()
-	if err := loadRelations(ctx, q.t.db, q.t.desc, &out, q.withs...); err != nil {
+	// Auto-load belongs-to relations not explicitly requested (P4). When the
+	// caller specifies .With(...) they take full control; otherwise every
+	// declared *Child relation is batch-loaded in one query per relation — no
+	// lazy N+1.
+	withs := q.defaultWiths()
+	if err := loadRelations(ctx, q.t.db, q.t.desc, &out, withs...); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -146,7 +167,7 @@ func (q *Query[M]) One(ctx context.Context) (M, error) {
 		return zero, err
 	}
 	one := []M{m}
-	if err := loadRelations(ctx, q.t.db, q.t.desc, &one, q.withs...); err != nil {
+	if err := loadRelations(ctx, q.t.db, q.t.desc, &one, q.defaultWiths()...); err != nil {
 		return zero, err
 	}
 	return one[0], nil

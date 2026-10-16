@@ -1,29 +1,38 @@
 ---
 title: "Data models"
-description: "Model-first declarations and schema generation."
+description: "Define a model once; derive schema and queries from it."
 ---
 
+Your struct is the single source of truth.
 
-Status: draft.
+## Model
 
-## Overview
+```go
+type Note struct {
+    data.Model `db:"notes"`
+    ID         int64     `db:"id auto"`
+    Title      string    `db:"title" required:"" min:"3"`
+    Body       string    `db:"body"`
+    CreatedAt  time.Time `db:"created_at"`
+    UpdatedAt  time.Time `db:"updated_at"`
+    Version    int64     `db:"version"`
+}
+```
 
-Document the purpose of this page and the problem it solves.
+## Queries
 
-## Prerequisites
+```go
+notes, err := db.Table[Note]().
+    Where(noteCols.Title.Like("cozy")).
+    OrderBy(noteCols.ID.Desc()).
+    Limit(10).
+    All(ctx)
+```
 
-- List required concepts and setup.
+Columns are typed tokens (`data.C[Note]("title")`) so mistakes are compile
+errors.
 
-## Steps
+## Relations
 
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+Add `*T` or `[]*T` fields tagged `ref:<fk>` and use `With` to eager-load
+them in batches.

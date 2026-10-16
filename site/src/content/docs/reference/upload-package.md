@@ -1,29 +1,10 @@
 ---
 title: "upload package"
-description: "Storage-backed file uploads."
+description: "Local file storage and serving."
 ---
 
-
-Status: draft.
-
-## Overview
-
-Document the purpose of this page and the problem it solves.
-
-## Prerequisites
-
-- List required concepts and setup.
-
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+- `upload.New(root, prefix)` creates a `Local` store.
+- `Save(ctx, r, field, options)` persists uploaded files with size/type checks.
+- `Open`, `Delete`, `URL`, `Handler`, and `Serve` cover addressability and
+  authorized downloads.
+- `app.Config.Uploads` mounts the store automatically.

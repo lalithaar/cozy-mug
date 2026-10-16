@@ -1,0 +1,13 @@
+{{define "title"}}404 - Not found - cozy-mug{{end}}
+{{define "content"}}
+<section class="error-page">
+  <img class="mascot" src="/static/ui/cozy-mascot.png" alt="A cozy mug with the Go mascot peeking out" width="180">
+  <h1>404 - Not found</h1>
+  <p>That note doesn't exist. <a href="{{.URL "home"}}">Back home</a>.</p>
+</section>
+<style>
+  .error-page { max-width: 32rem; margin: 3rem auto; text-align: center; }
+  .mascot { width: 10rem; height: auto; margin-bottom: 1.5rem; }
+  .error-page h1 { margin-bottom: .5rem; }
+</style>
+{{end}}

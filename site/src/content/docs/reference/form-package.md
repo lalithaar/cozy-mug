@@ -1,29 +1,9 @@
 ---
 title: "form package"
-description: "Binding, validation, re-rendering."
+description: "Request binding and validation."
 ---
 
-
-Status: draft.
-
-## Overview
-
-Document the purpose of this page and the problem it solves.
-
-## Prerequisites
-
-- List required concepts and setup.
-
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+`form.Bind[T](c)` validates struct tags such as `required`, `min`, `max`,
+and `email`. Values are repopulated with `.Raw("field")`. File fields of type
+`*multipart.FileHeader` are auto-bound in multipart requests. Implement custom
+validation with a `Validate() []core.FieldError` method.

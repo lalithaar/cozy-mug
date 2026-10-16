@@ -1,29 +1,22 @@
 ---
 title: "data package"
-description: "Tables, queries, mutations, transactions."
+description: "Model-first data access for SQLite and Postgres."
 ---
 
+## Core types
 
-Status: draft.
+- `data.Model` embedding (table tag names the table).
+- `data.Col` and `data.R` tokens.
+- `data.DB`, `data.Table[M]`, `data.Tx`.
 
-## Overview
+## Query methods
 
-Document the purpose of this page and the problem it solves.
+`Where`, `OrderBy`, `Limit`, `Offset`, `With`, `All`, `One`, `Count`, `Page`,
+`Create`, `Update`, `Delete`.
 
-## Prerequisites
+## Schema helpers
 
-- List required concepts and setup.
+- `SchemaSQL()` returns DDL for tests.
+- `data.Open(ctx, dsn)` connects SQLite or Postgres based on the DSN.
 
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+Relations use `ref:<fk>`; mutations are whole-row with optimistic `Version`.

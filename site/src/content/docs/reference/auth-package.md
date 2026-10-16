@@ -1,29 +1,19 @@
 ---
 title: "auth package"
-description: "Login, logout, guards, lockout."
+description: "Opt-in identity helpers."
 ---
 
+Import path: `github.com/lalithaar/cozy-mug/auth`.
 
-Status: draft.
+## Functions
 
-## Overview
+- `HashPassword(password string) (string, error)`
+- `CheckPassword(hash, password string) bool`
+- `Login(c *core.Context, userID any) error`
+- `Logout(c *core.Context) error`
+- `UserID(c) (any, bool)`
+- `Authenticated(c) bool`
+- `UserProcessor(loader UserLoader) core.Processor`
 
-Document the purpose of this page and the problem it solves.
-
-## Prerequisites
-
-- List required concepts and setup.
-
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+The app owns the `User` model and migrations. `auth` only stores and resolves
+identity in the session.

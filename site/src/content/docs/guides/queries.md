@@ -1,29 +1,22 @@
 ---
 title: "Queries"
-description: "Fluent model queries, filtering, sorting, paging."
+description: "Use the fluent query builder and raw SQL."
 ---
 
+## Operators
 
-Status: draft.
+Predicates include `Eq`, `Ne`, `Gt`, `Gte`, `Lt`, `Lte`, `Like`, `In`,
+`NotIn`, `Nil`, and `NotNil`.
 
-## Overview
+## Ordering and paging
 
-Document the purpose of this page and the problem it solves.
+```go
+db.Table[Note]().OrderBy(noteCols.ID.Asc()).Limit(20).Offset(40).All(ctx)
+db.Table[Note]().Page(ctx, 2, 20) // page, size
+```
 
-## Prerequisites
+## Raw SQL
 
-- List required concepts and setup.
-
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+Use `Tx` for multi-statement transactions. Parameterized statements are
+supported through the query builder; raw SQL remains the escape hatch for
+anything outside the fixed operator set.

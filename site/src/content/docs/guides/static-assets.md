@@ -1,29 +1,16 @@
 ---
 title: "Static assets"
-description: "Embed and serve static files."
+description: "Serve files and embedded assets."
 ---
 
+Place files in `static/` and cozy-mug mounts them at `/static/`.
 
-Status: draft.
+## Uploads
 
-## Overview
+Use `upload.New("uploads", "/uploads/")` and call `r.Mount(store.Prefix, store.Handler())`.
+Configuring `app.Config.Uploads` mounts it for you.
 
-Document the purpose of this page and the problem it solves.
+## User assets
 
-## Prerequisites
-
-- List required concepts and setup.
-
-## Steps
-
-1. First step.
-2. Second step.
-3. Verify the result.
-
-## Details
-
-Explain behavior, options, edge cases, and constraints.
-
-## Related
-
-- Link to relevant guides and reference pages.
+Serve a single directory with `r.Static` or an `fs.FS` with
+`r.StaticFS`. For storage backends, use `r.Mount`.

@@ -20,6 +20,8 @@ import (
 	"time"
 
 	"github.com/lalithaar/cozy-mug/core"
+	"github.com/lalithaar/cozy-mug/data"
+	"github.com/lalithaar/cozy-mug/flash"
 	"github.com/lalithaar/cozy-mug/router"
 	"github.com/lalithaar/cozy-mug/session"
 	"github.com/lalithaar/cozy-mug/ui"
@@ -32,6 +34,11 @@ type Config struct {
 	// Assets is an fs.FS containing the app's "views/" directory (see 0006) and,
 	// optionally, a "static/" directory. Usually //go:embed views static.
 	Assets fs.FS
+
+	// DB is the database connection opened at boot (main opens it and passes it
+	// here). Required when AutoMigrate is set; otherwise the app's store holds
+	// its own db reference.
+	DB *data.DB
 
 	// Routes registers the app's routes. Routing lives in the router package;
 	// this is the route table (e.g. a handlers.Register function). May be nil.
@@ -55,6 +62,12 @@ type Config struct {
 	// seals sessions into the cookie instead. The example wires it here.
 	Session *session.Store
 
+	// Flash, when true and Session is configured, automatically appends
+	// flash.Processor() to Processors so queued one-shot messages are exposed
+	// to every view as {{.Values.flash}} and consumed on first render (0020).
+	// Opt-in: apps that don't use flash can leave it false.
+	Flash bool
+
 	// Processors compute request-scoped values (current user, flash) exposed to
 	// every view as {{.Values.name}} (gap 7). They run after sessions and before
 	// views, so a processor may read the session. Optional.
@@ -65,6 +78,17 @@ type Config struct {
 	// instance should be handed to handlers for Save/Open. Optional.
 	// It must implement upload.PublicStore.
 	Uploads upload.PublicStore
+
+	// Models, when AutoMigrate is set, are the model values (pointers to
+	// structs embedding data.Model) whose schema is applied on boot. Optional.
+	Models []any
+
+	// AutoMigrate, when true and Dev is true, applies model-derived DDL
+	// (data.SchemaSQLFor) on boot before routes are registered. It is a
+	// development convenience only: app.New errors if AutoMigrate is set
+	// without Dev. Production always uses cozy migrate (0016, superseded in
+	// part by 0023).
+	AutoMigrate bool
 }
 
 // App is an assembled application. It is an http.Handler, so tests and the agent
@@ -101,12 +125,45 @@ func New(cfg Config) (*App, error) {
 
 	r := router.New()
 	opts := core.Options{Dev: cfg.Dev, Logger: cfg.Logger}
-	r.Use(core.Logger(opts), core.Errors(opts))
+	r.Use(core.Logger(opts))
+	if cfg.Dev {
+		r.Use(devInjectMiddleware)
+	}
+	r.Use(core.Errors(opts))
+
+	// Dev-only auto-schema (0023): apply model-derived DDL on boot so `cozy
+	// dev` and tests don't need manual SchemaSQL() exec. Production never
+	// takes this path — app.New errors if AutoMigrate is set without Dev.
+	if cfg.AutoMigrate && !cfg.Dev {
+		return nil, errors.New("app: AutoMigrate requires Dev (production schema comes from cozy migrate)")
+	}
+	if cfg.AutoMigrate {
+		if cfg.DB == nil {
+			return nil, errors.New("app: AutoMigrate requires Config.DB")
+		}
+		for _, m := range cfg.Models {
+			stmts, err := data.SchemaSQLFor(cfg.DB, m)
+			if err != nil {
+				return nil, fmt.Errorf("app: automigrate schema for %T: %w", m, err)
+			}
+			for _, s := range stmts {
+				if _, err := cfg.DB.ExecContext(context.Background(), s); err != nil {
+					return nil, fmt.Errorf("app: automigrate exec: %w", err)
+				}
+			}
+		}
+	}
 	if cfg.Session != nil {
 		r.Use(cfg.Session.Middleware)
 	}
 	if len(cfg.Processors) > 0 {
 		r.Use(core.Processors(cfg.Processors...))
+	}
+	// Flash, when enabled with sessions, pops one-shot messages from the
+	// session and exposes them as {{.Values.flash}} on every view. It runs
+	// with the other processors, after sessions and before views (0020).
+	if cfg.Flash && cfg.Session != nil {
+		r.Use(core.Processors(flash.Processor()))
 	}
 	// Views before CSRF: a rejected unsafe request still renders its error page
 	// with the global values. Views installs the renderer, it does not dispatch.
@@ -127,6 +184,9 @@ func New(cfg Config) (*App, error) {
 			prefix = "/uploads/"
 		}
 		r.Mount(prefix, cfg.Uploads.Handler())
+	}
+	if cfg.Dev {
+		r.Mount("/__cozy/", devReloadHandler{})
 	}
 	if cfg.Routes != nil {
 		cfg.Routes(r)
