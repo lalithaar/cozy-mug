@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-//go:embed testdata/project testdata/project-minimal testdata/project-auth
+//go:embed testdata/project testdata/project-minimal testdata/project-auth testdata/project-polls
 var templateFS embed.FS
 
 func runNew(args []string) error {
@@ -22,6 +22,8 @@ func runNew(args []string) error {
 	templateName := "example"
 	templateSet := false
 	moduleOverride := ""
+	db := "sqlite" // default database
+	dbSet := false
 	for i := 0; i < len(args); i++ {
 		switch args[i] {
 		case "-dir", "--dir":
@@ -43,6 +45,13 @@ func runNew(args []string) error {
 			}
 			moduleOverride = args[i+1]
 			i++
+		case "--db", "--database":
+			if i+1 >= len(args) {
+				return fmt.Errorf("missing value for %s", args[i])
+			}
+			db = args[i+1]
+			dbSet = true
+			i++
 		case "--git":
 			doGit = true
 		case "--auth", "-auth":
@@ -58,8 +67,13 @@ func runNew(args []string) error {
 			}
 		}
 	}
-	if templateName != "example" && templateName != "minimal" && templateName != "auth" {
-		return fmt.Errorf("unknown template %q (want example, minimal, or auth)", templateName)
+	validTemplates := map[string]bool{"example": true, "minimal": true, "auth": true, "polls": true}
+	if !validTemplates[templateName] {
+		return fmt.Errorf("unknown template %q (want example, minimal, auth, or polls)", templateName)
+	}
+	validDBs := map[string]bool{"sqlite": true, "postgres": true}
+	if !validDBs[db] {
+		return fmt.Errorf("unknown database %q (want sqlite or postgres)", db)
 	}
 	if name == "" {
 		// Works both interactively and piped (e.g. echo name | cozy new).
@@ -78,11 +92,20 @@ func runNew(args []string) error {
 	}
 
 	if !templateSet && isTerminal(os.Stdin) {
-		fmt.Print("Template (example, minimal, auth) [example]: ")
+		fmt.Print("Template (example, minimal, auth, polls) [example]: ")
 		r := bufio.NewReader(os.Stdin)
 		line, _ := r.ReadString('\n')
 		if tname := strings.TrimSpace(line); tname != "" {
 			templateName = tname
+		}
+	}
+
+	if !dbSet && isTerminal(os.Stdin) {
+		fmt.Printf("Database (sqlite, postgres) [%s]: ", db)
+		r := bufio.NewReader(os.Stdin)
+		line, _ := r.ReadString('\n')
+		if d := strings.TrimSpace(line); d != "" {
+			db = d
 		}
 	}
 
@@ -107,8 +130,8 @@ func runNew(args []string) error {
 			doGit = true
 		}
 	}
-	if templateName != "example" && templateName != "minimal" && templateName != "auth" {
-		return fmt.Errorf("unknown template %q (want example, minimal, or auth)", templateName)
+	if !validTemplates[templateName] {
+		return fmt.Errorf("unknown template %q (want example, minimal, auth, or polls)", templateName)
 	}
 	if dir == "" {
 		dir = sanitizeName(name)
@@ -136,9 +159,10 @@ func runNew(args []string) error {
 		root = "testdata/project-minimal"
 	} else if templateName == "auth" {
 		root = "testdata/project-auth"
+	} else if templateName == "polls" {
+		root = "testdata/project-polls"
 	}
-	err := copyTemplate(root, dir, module)
-	if err != nil {
+	if err := copyTemplate(root, dir, module, db); err != nil {
 		return err
 	}
 	gomod := fmt.Sprintf("module %s\n\ngo 1.27\n\nrequire github.com/lalithaar/cozy-mug v0.0.12\n", module)
@@ -180,7 +204,10 @@ func runNew(args []string) error {
 	return nil
 }
 
-func copyTemplate(root, dest, module string) error {
+// copyTemplate copies the template directory to dest, replacing __MODULE__ with
+// the module path. When copying the polls template, only the chosen database
+// dialect's migration directory is kept.
+func copyTemplate(root, dest, module, dialect string) error {
 	return fs.WalkDir(templateFS, root, func(p string, d os.DirEntry, err error) error {
 		if err != nil {
 			return err
@@ -189,6 +216,16 @@ func copyTemplate(root, dest, module string) error {
 		rel = strings.TrimPrefix(rel, "/")
 		if rel == "" {
 			return nil
+		}
+		// For the polls template, only keep the chosen dialect's migrations.
+		if strings.Contains(root, "project-polls") {
+			relSlash := strings.ReplaceAll(rel, string(filepath.Separator), "/")
+			if strings.Contains(relSlash, "migrations/") {
+				parts := strings.Split(relSlash, "/")
+				if len(parts) >= 2 && parts[0] == "migrations" && parts[1] != dialect {
+					return nil // skip the non-chosen dialect
+				}
+			}
 		}
 		target := filepath.Join(dest, rel)
 		if d.IsDir() {
@@ -213,4 +250,3 @@ func isTerminal(f *os.File) bool {
 	}
 	return (info.Mode() & os.ModeCharDevice) != 0
 }
-

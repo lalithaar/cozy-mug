@@ -1,0 +1,13 @@
+{{define "title"}}Polls{{end}}
+{{define "content"}}
+<h1>Polls</h1>
+{{if .Questions}}
+<ul>
+{{range $i, $q := .Questions}}
+  <li><a href="{{$.URL "polls.detail" "id" $q.ID}}">{{$q.QuestionText}}</a></li>
+{{end}}
+</ul>
+{{else}}
+<p class="small">No polls yet.</p>
+{{end}}
+{{end}}

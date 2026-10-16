@@ -1,0 +1,14 @@
+{{define "title"}}{{.Question.QuestionText}}{{end}}
+{{define "content"}}
+<h1>{{.Question.QuestionText}}</h1>
+<form method="post" action="{{$.URL "polls.vote" "id" .Question.ID}}">
+  {{.CSRF}}
+  {{range $i, $c := .Question.Choices}}
+    <label>
+      <input type="radio" name="choice" value="{{$c.ID}}">{{$c.ChoiceText}} ({{$c.Votes}})
+    </label><br>
+  {{end}}
+  <button type="submit">Vote</button>
+</form>
+<p><a href="{{$.URL "polls.results" "id" .Question.ID}}">See results</a></p>
+{{end}}

@@ -1,0 +1,121 @@
+/* Polls app styles — minimal, system-color based. */
+
+:root {
+	color-scheme: light dark;
+}
+
+body {
+	margin: 0;
+	background: Canvas;
+	color: CanvasText;
+	font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+		Helvetica, Arial, sans-serif;
+}
+
+a {
+	color: inherit;
+	text-decoration: underline;
+	text-decoration-color: rgba(127, 127, 127, 0.45);
+	text-underline-offset: 2px;
+}
+
+header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 20px;
+	border-bottom: 1px solid rgba(127, 127, 127, 0.22);
+	background: Canvas;
+}
+
+header h1 {
+	font-size: 1.1rem;
+	margin: 0;
+	letter-spacing: 0.04em;
+}
+
+header nav a {
+	margin-left: 16px;
+	text-decoration: none;
+	border-bottom: 2px solid transparent;
+	padding-bottom: 4px;
+}
+
+main {
+	max-width: 640px;
+	margin: 0 auto;
+	padding: 28px 20px 64px;
+}
+
+.flash {
+	background: rgba(127, 127, 127, 0.1);
+	border: 1px solid rgba(127, 127, 127, 0.25);
+	border-radius: 10px;
+	padding: 10px 14px;
+	margin: 0 0 16px;
+	font-size: 0.9rem;
+}
+
+h1 {
+	font-size: 1.5rem;
+	margin: 0 0 16px;
+}
+
+form {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 12px;
+	margin-top: 12px;
+}
+
+label {
+	font-size: 0.95rem;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 12px;
+	border: 1px solid rgba(127, 127, 127, 0.35);
+	border-radius: 8px;
+	background: Canvas;
+	color: CanvasText;
+	cursor: pointer;
+}
+
+label:hover {
+	background: rgba(127, 127, 127, 0.06);
+}
+
+button {
+	font: inherit;
+	padding: 10px 16px;
+	border: 1px solid rgba(127, 127, 127, 0.45);
+	border-radius: 8px;
+	background: Canvas;
+	color: CanvasText;
+	cursor: pointer;
+	margin-top: 8px;
+}
+
+button:hover {
+	border-color: CanvasText;
+}
+
+ul {
+	list-style: none;
+	padding: 0;
+	margin: 12px 0;
+}
+
+li {
+	padding: 10px 12px;
+	border-bottom: 1px solid rgba(127, 127, 127, 0.15);
+}
+
+li:last-child {
+	border-bottom: none;
+}
+
+.small {
+	font-size: 0.85rem;
+	opacity: 0.8;
+}

@@ -1,0 +1,18 @@
+CREATE TABLE IF NOT EXISTS questions (
+  id BIGSERIAL PRIMARY KEY,
+  question_text TEXT NOT NULL,
+  pub_date TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL,
+  version BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS choices (
+  id BIGSERIAL PRIMARY KEY,
+  question_id BIGINT NOT NULL,
+  choice_text TEXT NOT NULL,
+  votes BIGINT NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL,
+  version BIGINT NOT NULL
+);

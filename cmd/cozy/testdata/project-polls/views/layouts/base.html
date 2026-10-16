@@ -1,0 +1,24 @@
+{{define "base"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{block "title" .}}polls{{end}}</title>
+{{block "head" .}}{{template "layout-head" .}}{{end}}
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1><a href="{{.URL "polls.index"}}">polls</a></h1>
+  <nav>
+    <a href="{{.URL "polls.index"}}">Polls</a>
+  </nav>
+</header>
+<main>
+{{with .Values.flash}}<p class="flash">{{.}}</p>{{end}}
+{{block "content" .}}{{end}}
+</main>
+{{block "scripts" .}}{{end}}
+</body>
+</html>
+{{end}}

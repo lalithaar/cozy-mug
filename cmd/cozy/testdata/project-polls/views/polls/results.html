@@ -1,0 +1,11 @@
+{{define "title"}}Results - {{.Question.QuestionText}}{{end}}
+{{define "content"}}
+<h1>{{.Question.QuestionText}}</h1>
+<ul>
+{{range $i, $c := .Question.Choices}}
+  <li>{{$c.ChoiceText}}: {{$c.Votes}} vote{{if ne $c.Votes 1}}s{{end}}</li>
+{{end}}
+</ul>
+<p><a href="{{$.URL "polls.detail" "id" .Question.ID}}">Vote again</a></p>
+<p><a href="{{$.URL "polls.index"}}">Back to polls</a></p>
+{{end}}
