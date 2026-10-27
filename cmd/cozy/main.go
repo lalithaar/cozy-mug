@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -34,7 +35,11 @@ func main() {
 			fatal(err)
 		}
 	case "version", "--version", "-v":
-		fmt.Println("cozy 0.0.11")
+		if v := resolvedVersion(); v != "" {
+			fmt.Printf("cozy %s\n", strings.TrimPrefix(v, "v"))
+		} else {
+			fmt.Println("cozy (devel)")
+		}
 	default:
 		usage()
 		os.Exit(2)
@@ -42,7 +47,7 @@ func main() {
 }
 
 func usage() {
-	fmt.Fprintln(os.Stderr, "usage: cozy <new|migrate<|start|>version> [args]")
+	fmt.Fprintln(os.Stderr, "usage: cozy <new|migrate|seed|console|dev|version> [args]")
 	fmt.Fprintln(os.Stderr, "  cozy new <name> [--dir DIR] [--template example|minimal|auth|polls] [--db sqlite|postgres] [--git]")
 	fmt.Fprintln(os.Stderr, "  cozy migrate [new <name> [source-dir]|up]  apply migrations (default: up)")
 	fmt.Fprintln(os.Stderr, "  cozy seed                                 apply idempotent seed SQL from seeds/")

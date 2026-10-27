@@ -165,14 +165,17 @@ func runNew(args []string) error {
 	if err := copyTemplate(root, dir, module, db); err != nil {
 		return err
 	}
-	gomod := fmt.Sprintf("module %s\n\ngo 1.27\n\nrequire github.com/lalithaar/cozy-mug v0.0.12\n", module)
-	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomod), 0o644); err != nil {
+	frameworkVersion := resolvedVersion()
+	if err := os.WriteFile(filepath.Join(dir, "go.mod"), []byte(gomodFile(module, frameworkVersion)), 0o644); err != nil {
 		return err
 	}
 	// A tiny .gitignore so VCS hygiene works out of the box.
 	_ = os.WriteFile(filepath.Join(dir, ".gitignore"), []byte("# Build artifacts\n*.exe\n*.test\n*.out\n\n# Local databases\n*.db\n*.db-shm\n*.db-wal\n*.sqlite\n*.sqlite3\n"), 0o644)
 
 	fmt.Printf("created %s\n", dir)
+	if frameworkVersion == "" {
+		fmt.Println("cozy new: development build - the framework version is not pinned; `go mod tidy` resolves the latest release")
+	}
 
 	if !skipTidy {
 		fmt.Println("fetching dependencies (go mod tidy)...")
@@ -202,6 +205,19 @@ func runNew(args []string) error {
 	}
 	fmt.Printf("  cozy dev            # build -> restart -> refresh\n")
 	return nil
+}
+
+// gomodFile renders the scaffold's go.mod. The framework requirement pins the
+// CLI's own version when it can be determined (release builds via -ldflags,
+// module installs via build info). A development build knows no version, so the
+// require line is omitted and `go mod tidy` resolves the latest release.
+func gomodFile(module, frameworkVersion string) string {
+	b := &strings.Builder{}
+	fmt.Fprintf(b, "module %s\n\ngo 1.27\n", module)
+	if frameworkVersion != "" {
+		fmt.Fprintf(b, "\nrequire %s %s\n", modulePath, frameworkVersion)
+	}
+	return b.String()
 }
 
 // copyTemplate copies the template directory to dest, replacing __MODULE__ with

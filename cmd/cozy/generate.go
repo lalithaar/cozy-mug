@@ -32,18 +32,28 @@ func runGenerate(args []string) error {
 	}
 }
 
-// colSpecFrom parses a single "name:type" column spec into a colSpec reused by
-// the migration renderer in gen.go. type maps to a Go scalar; "auto" suffix
-// marks the auto-increment primary key (e.g. "id:int auto").
+// colSpecFrom parses a single "name:type" column spec (or the older
+// "name type" form) into a colSpec reused by the migration renderer in gen.go.
+// type maps to a Go scalar; "auto" marks the auto-increment primary key
+// (e.g. "id:int auto").
 func colSpecFrom(spec string) (colSpec, error) {
 	parts := strings.Fields(spec)
-	if len(parts) < 2 {
+	if len(parts) == 0 {
 		return colSpec{}, fmt.Errorf("invalid column spec %q (want name:type [flags])", spec)
 	}
-	name := parts[0]
-	typeName := parts[1]
+	var name, typeName string
+	rest := parts[1:]
+	if i := strings.IndexByte(parts[0], ':'); i > 0 {
+		name, typeName = parts[0][:i], parts[0][i+1:]
+	} else if len(parts) >= 2 {
+		name, typeName = parts[0], parts[1]
+		rest = parts[2:]
+	}
+	if name == "" || typeName == "" {
+		return colSpec{}, fmt.Errorf("invalid column spec %q (want name:type [flags])", spec)
+	}
 	flags := map[string]bool{}
-	for _, p := range parts[2:] {
+	for _, p := range rest {
 		flags[p] = true
 	}
 

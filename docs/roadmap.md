@@ -84,7 +84,8 @@ The nucleus, for the record; **no adoption promise** (module path is still the
   messages consumed by the existing processor/render seam; no new middleware
   ordering needed.
 - [ ] **Identity & docs** — module path now `github.com/lalithaar/cozy-mug`
-  (`0009`); TODO: README + getting-started polish, and a tag with the new path.
+  (`0009`); tag with the new path cut at `v0.0.13` (2026-10-27); TODO: README +
+  getting-started polish.
 - [ ] **Testing convention** (`gap` 14) — documented `httptest` / test-client
   seam (agent CLI may slip).
 
@@ -108,7 +109,7 @@ decision (needs ADR + sign-off), and where it sequences.
 
 | # | Area | Proposal | Status vs codebase | Decision impact |
 |---|------|----------|-------------------|-----------------|
-| P1 | Scaffolding & code generation | `cozy generate scaffold <Name> <cols>` and `cozy generate model <Name> <cols>` emit model struct + column tokens + migration SQL + handler stubs + views. | **Not built.** `cozy gen` exists internally in `cmd/cozy/gen.go` (model discovery + DDL render) but is not exposed as a user-facing subcommand; `cozy new` only scaffolds from embedded templates. | Reopens gap row 15 (skip -> generator) and row 16 (generators sequenced after v0.1). **Soft**; needs ADR + sign-off. |
+| P1 | Scaffolding & code generation | `cozy generate scaffold <Name> <cols>` and `cozy generate model <Name> <cols>` emit model struct + column tokens + migration SQL + handler stubs + views. | **Partial; not reachable; output does not compile.** `cmd/cozy/generate.go` implements both subcommands, but `main.go` does not dispatch `generate`, so the code is dead. Exercising it directly found: the model file declares `package handlers` inside `models/`, its token block is a comment-only empty struct (a type used as an expression), scaffold stubs duplicate the model type, and `handlers/` is written without `MkdirAll`. `main.go` dispatch was deliberately left out of `v0.0.13` rather than ship a generator that emits broken code; fix as its own change. | Reopens gap row 15 (skip -> generator) and row 16 (generators sequenced after v0.1). **Soft**; needs ADR + sign-off. |
 | P2 | Routing | Resourceful routing: `r.Resource("people", PeopleController{})` conventionally maps index/show/new/create/edit/destroy with named routes + reverse URLs, plus nested resources. | **Not built.** `router.Router` supports named routes + groups + middleware; resource conventions are hand-written per app (`gap` 2 = Fill small). | Additive to `0005`; does not reopen firm decisions. **Soft**. |
 | P3 | Dev-only auto-schema | Opt-in `app.Config.AutoMigrate` (dev only) applies model-derived DDL on boot so `cozy dev` / tests don't need manual `SchemaSQL()` exec. | **Not built; deviates from `0016`.** `0016` is firm: "DDL at boot is not; app tables arrive only through `cozy migrate`." | **Reopens `0016`.** Needs ADR + human sign-off; scoped to `Dev: true` only, never production. |
 | P4 | Relation loading defaults | Default eager loading for declared `belongs-to` relations on `All`/`One` (opt-out via `.Without(...)`), so listing pages don't need `.With(...)` per parent. | **Not built.** `data` requires explicit `.With(data.R[M]("Field"))`; relations load only when asked (`gap` 8). | Additive to `0016`; no decision reopen. **Soft**. |
