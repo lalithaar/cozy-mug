@@ -96,7 +96,9 @@ The nucleus, for the record; **no adoption promise** (module path is still the
   (`data/security_internal_test.go`, `data/data_security_test.go`). Live Postgres
   integration test env-gated, runs in CI `postgres` job.
 - **Supply chain** (`0001`, `0012`) — CI runs `go vet`, `go test`, `go build`,
-  `govulncheck`; drivers current; toolchain go1.27.1 (CI pins `1.27.2`).
+  `govulncheck`; drivers current; `go.mod` pins `toolchain go1.27.3`
+  (GO-2026-6809, crypto/x509) and CI tracks `1.27.x` so patch fixes land
+  without a pin edit.
 
 ---
 

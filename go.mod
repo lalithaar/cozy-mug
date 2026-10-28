@@ -2,6 +2,8 @@ module github.com/lalithaar/cozy-mug
 
 go 1.27
 
+toolchain go1.27.3
+
 require (
 	github.com/jackc/pgx/v5 v5.11.0
 	modernc.org/sqlite v1.60.1
